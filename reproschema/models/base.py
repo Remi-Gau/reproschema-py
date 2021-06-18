@@ -52,7 +52,7 @@ class SchemaBase:
     #
 
     def check_labels(self, attribute, value):
-        if not (isinstance(value, str) or isinstance(value, dict)):
+        if not isinstance(value, (str, dict)):
             raise ValueError(f'{attribute.name} must be a string or a dict! got {type(value)}')
 
     prefLabel = attr.ib(kw_only=True, validator=check_labels)
