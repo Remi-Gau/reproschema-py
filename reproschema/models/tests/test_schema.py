@@ -1,6 +1,7 @@
 # from .. import Protocol, Activity, Item
 from .. import activity, protocol, item
 
+
 def test_constructors():
     protocol.Protocol()
     activity.Activity()

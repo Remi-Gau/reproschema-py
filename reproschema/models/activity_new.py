@@ -1,4 +1,5 @@
 from reproschema.models.base import SchemaBase
+
 # import base
 # import item_new
 import attr
@@ -12,35 +13,59 @@ class Activity(SchemaBase):
 
     # schema_type = "reproschema:Activity"
 
-    shuffle = attr.ib(default=None, validator=attr.validators.optional(attr.validators.instance_of(bool)))
+    shuffle = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(bool)),
+    )
     allow = attr.ib(default=attr.Factory(list))
-    order = attr.ib(default=attr.Factory(list), validator=attr.validators.deep_iterable(
-        member_validator=attr.validators.instance_of(str),
-        iterable_validator=attr.validators.instance_of(list)
-    ))
-    addProperties = attr.ib(default=attr.Factory(list), validator=attr.validators.deep_iterable(
-        member_validator=attr.validators.instance_of(dict),
-        iterable_validator=attr.validators.instance_of(list)
-    ))
-    overrideProperties = attr.ib(default=attr.Factory(list), validator=attr.validators.deep_iterable(
-        member_validator=attr.validators.instance_of(dict),
-        iterable_validator=attr.validators.instance_of(list)
-    ))
-    compute = attr.ib(default=attr.Factory(list), validator=attr.validators.deep_iterable(
-        member_validator=attr.validators.instance_of(dict),
-        iterable_validator=attr.validators.instance_of(list)
-    ))
-    _schemaType = attr.ib(default='reproschema:Activity')
+    order = attr.ib(
+        default=attr.Factory(list),
+        validator=attr.validators.deep_iterable(
+            member_validator=attr.validators.instance_of(str),
+            iterable_validator=attr.validators.instance_of(list),
+        ),
+    )
+    addProperties = attr.ib(
+        default=attr.Factory(list),
+        validator=attr.validators.deep_iterable(
+            member_validator=attr.validators.instance_of(dict),
+            iterable_validator=attr.validators.instance_of(list),
+        ),
+    )
+    overrideProperties = attr.ib(
+        default=attr.Factory(list),
+        validator=attr.validators.deep_iterable(
+            member_validator=attr.validators.instance_of(dict),
+            iterable_validator=attr.validators.instance_of(list),
+        ),
+    )
+    compute = attr.ib(
+        default=attr.Factory(list),
+        validator=attr.validators.deep_iterable(
+            member_validator=attr.validators.instance_of(dict),
+            iterable_validator=attr.validators.instance_of(list),
+        ),
+    )
+    _schemaType = attr.ib(default="reproschema:Activity")
 
     @allow.validator
     def check_allow(self, attribute, value):
         if not (isinstance(value, list)):
-            raise ValueError(f'allow must be a list! got {type(value)}')
-        allow_list = ["reproschema:AllowExport", "reproschema:DisableBack", "reproschema:AutoAdvance", "reproschema:AllowReplay",
-                      "reproschema:Skipped", "reproschema:DontKnow", "reproschema:TimedOut"]
+            raise ValueError(f"allow must be a list! got {type(value)}")
+        allow_list = [
+            "reproschema:AllowExport",
+            "reproschema:DisableBack",
+            "reproschema:AutoAdvance",
+            "reproschema:AllowReplay",
+            "reproschema:Skipped",
+            "reproschema:DontKnow",
+            "reproschema:TimedOut",
+        ]
         for e in value:
             if e not in allow_list:
-                raise ValueError(f'allow property not a defined property! got {e}, allowed list is {allow_list}')
+                raise ValueError(
+                    f"allow property not a defined property! got {e}, allowed list is {allow_list}"
+                )
 
     # def __init__(self, version=None):
     #     super().__init__(version)
@@ -102,13 +127,13 @@ class Activity(SchemaBase):
 
     def append_item(self, item):
         additional_properties = {
-            "variableName": 'item_1',
+            "variableName": "item_1",
             "isAbout": "./item_1",
             "isVis": item.visible,
             "requiredValue": item.required,
         }
         if item.skippable:
-            self.allow = ['reproschema:Skipped']
+            self.allow = ["reproschema:Skipped"]
 
         self.order.append("./item_1")
         self.addProperties.append(additional_properties)
@@ -116,4 +141,3 @@ class Activity(SchemaBase):
 
     def write(self, output_dir, filename):
         self._SchemaBase__write(output_dir, filename)
-

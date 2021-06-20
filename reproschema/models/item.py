@@ -764,4 +764,3 @@ def reorder_dict_skip_missing(old_dict, key_list):
     or that is not in the key list
     """
     return OrderedDict((k, old_dict[k]) for k in key_list if k in old_dict)
-

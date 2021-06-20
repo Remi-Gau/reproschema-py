@@ -1,4 +1,5 @@
 import attr
+
 # from .base import SchemaBase
 
 
@@ -88,6 +89,7 @@ class Protocol(SchemaBase):
 
         ui_order = ["allow", "shuffle", "order", "addProperties", "overrideProperties"]
         self.sort_ui(ui_order)
+
 
 # pp = Protocol(prefLabel="ann", description='trial')
 # print('------------')
