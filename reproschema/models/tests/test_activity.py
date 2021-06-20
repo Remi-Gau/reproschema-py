@@ -2,6 +2,7 @@ import os, sys, json
 from ..base import SchemaBase
 from ..activity_new import Activity
 from ..item import Item
+
 my_path = os.path.dirname(os.path.abspath(__file__))
 
 # Left here in case Remi and python path or import can't be friends once again.
@@ -39,12 +40,19 @@ reproschema_test_data = os.path.join(my_path, "..", "..", "tests", "data")
 
 def test_activity():
     # activity = Activity()
-    activity = Activity(prefLabel='testing pref', description='trial', altLabel='test alt label',
-                        preamble={'en': 'this is test preamble'},
-                        citation='https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/',
-                        image={"@type": "AudioObject", "contentUrl": "http://example.com/sample-image.png"})
+    activity = Activity(
+        prefLabel="testing pref",
+        description="trial",
+        altLabel="test alt label",
+        preamble={"en": "this is test preamble"},
+        citation="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/",
+        image={
+            "@type": "AudioObject",
+            "contentUrl": "http://example.com/sample-image.png",
+        },
+    )
     # aa.prefLabel = 'new pref label'
-    item_1 = Item(prefLabel='item 1')
+    item_1 = Item(prefLabel="item 1")
     activity.append_item(item_1)
 
     # activity.set_defaults("activity1")
@@ -99,7 +107,7 @@ def test_activity():
     # item_3.visible = False
     # activity.append_item(item_3)
 
-    activity.write(activity_dir, 'newActivity1_schema.jsonld')
+    activity.write(activity_dir, "newActivity1_schema.jsonld")
     activity_content, expected = load_jsons(activity)
     assert activity_content == expected
 
@@ -112,10 +120,10 @@ HELPER FUNCTIONS
 
 
 def load_jsons(obj):
-    output_file = os.path.join(activity_dir, 'newActivity1_schema.jsonld')
+    output_file = os.path.join(activity_dir, "newActivity1_schema.jsonld")
     content = read_json(output_file)
 
-    data_file = os.path.join(my_path, "data", "activities", 'activity2_schema.jsonld')
+    data_file = os.path.join(my_path, "data", "activities", "activity2_schema.jsonld")
     expected = read_json(data_file)
 
     return content, expected
