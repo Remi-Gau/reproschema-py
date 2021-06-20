@@ -1,19 +1,134 @@
 from reproschema.models.base import SchemaBase
+from collections import OrderedDict
 import attr
+import json, os
+
+
+SCHEMA_ORDER = [
+    "@context",
+    "@type",
+    "@id",
+    "prefLabel",
+    "altLabel",
+    "about",
+    "description",
+    "schemaVersion",
+    "version",
+    "question",
+    "citation",
+    "image",
+    "audio",
+    "video",
+    "ui",
+    "responseOptions",
+]
 
 
 @attr.s
 class Item(SchemaBase):
+    def check_labels(self, attribute, value):
 
-    readonlyValue = attr.ib(default=None, validator=attr.validators.optional(attr.validators.instance_of(bool)))
+        if not isinstance(value, (str, dict)):
+            raise ValueError(
+                f"{attribute.name} must be a string or a dict! Got {type(value)}"
+            )
+
+    question = attr.ib(default=None, validator=attr.validators.optional(check_labels))
+
+    inputType = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+
+    URI = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+
+    variableName = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+
+    responseOptions = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(dict)),
+    )
+
+    readonlyValue = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(bool)),
+    )
     isPartOf = attr.ib(default=attr.Factory(list))
-    additionalNotesObj = attr.ib(default=attr.Factory(list), validator=attr.validators.deep_iterable(
-        member_validator=attr.validators.instance_of(dict),
-        iterable_validator=attr.validators.instance_of(list)
-    ))
+    additionalNotesObj = attr.ib(
+        default=attr.Factory(list),
+        validator=attr.validators.deep_iterable(
+            member_validator=attr.validators.instance_of(dict),
+            iterable_validator=attr.validators.instance_of(list),
+        ),
+    )
     skippable = attr.ib(default=True)
     visible = attr.ib(default=True)
     required = attr.ib(default=True)
+
+    _schemaType = attr.ib(default="reproschema:Field")
+
+    def write(self, output_dir, filename):
+        """
+        Reused by the write method of the children classes
+        """
+        schema = {
+            "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
+            "@type": str(self._schemaType),
+            "@id": filename,
+        }
+
+        props = self.__dict__.copy()
+
+        ui_obj = {"inputType": props["inputType"]}
+        ui_obj = {key: value for key, value in ui_obj.items() if bool(value)}
+        del props["inputType"]
+
+        props.update(schema)
+        props.update({"ui": ui_obj})
+
+        self.filename = filename
+
+        props = {key: value for key, value in props.items() if bool(value)}
+
+        reordered_dict = reorder_dict_skip_missing(props, SCHEMA_ORDER)
+
+        with open(os.path.join(output_dir, filename), "w") as ff:
+            json.dump(reordered_dict, ff, indent=4)
+
+    # schema_type = None
+    #
+    # def __init__(self, version):
+    #
+    #     # TODO the version handling could probably be refactored
+    #     VERSION = version or DEFAULT_VERSION
+    #
+    #     self.schema = {
+    #         "@type": self.schema_type,
+    #         "schemaVersion": VERSION,
+    #         "version": "0.0.1",
+    #     }
+    #
+    #     URL = self.get_default_context(version)
+    #     self.set_context(URL)
+
+    # This probably needs some cleaning but is at the moment necessary to pass
+    # the context to the ResponseOption class
+
+
+def reorder_dict_skip_missing(old_dict, key_list):
+    """
+    reorders dictionary according to ``key_list``
+    removing any key with no associated value
+    or that is not in the key list
+    """
+    return OrderedDict((k, old_dict[k]) for k in key_list if k in old_dict)
+
 
 # # from .base import SchemaBase
 # from reproschema.models.base import SchemaBase
