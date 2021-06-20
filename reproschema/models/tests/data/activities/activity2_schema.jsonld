@@ -1,7 +1,7 @@
 {
     "@context": "https://raw.githubusercontent.com/ReproNim/reproschema//contexts/generic",
     "@type": "reproschema:Activity",
-    "@id": "newActivity1_schema.jsonld",
+    "@id": "activity2_schema.jsonld",
     "prefLabel": "testing pref",
     "altLabel": "test alt label",
     "description": "trial",
@@ -17,7 +17,8 @@
     },
     "ui": {
         "order": [
-            "./item_1"
+            "./item_1",
+            "./item_2"
         ],
         "addProperties": [
             {
