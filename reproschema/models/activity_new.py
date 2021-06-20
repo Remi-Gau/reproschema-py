@@ -8,10 +8,13 @@ class Activity(SchemaBase):
     class to deal with reproschema activities
     """
 
-    shuffle = attr.ib(
-        default=None,
+    _schemaType = attr.ib(default="reproschema:Activity")
+
+    skippable = attr.ib(
+        default=True,
         validator=attr.validators.optional(attr.validators.instance_of(bool)),
     )
+
     allow = attr.ib(default=attr.Factory(list))
     order = attr.ib(
         default=attr.Factory(list),
@@ -20,6 +23,7 @@ class Activity(SchemaBase):
             iterable_validator=attr.validators.instance_of(list),
         ),
     )
+
     addProperties = attr.ib(
         default=attr.Factory(list),
         validator=attr.validators.deep_iterable(
@@ -27,6 +31,7 @@ class Activity(SchemaBase):
             iterable_validator=attr.validators.instance_of(list),
         ),
     )
+
     overrideProperties = attr.ib(
         default=attr.Factory(list),
         validator=attr.validators.deep_iterable(
@@ -34,6 +39,7 @@ class Activity(SchemaBase):
             iterable_validator=attr.validators.instance_of(list),
         ),
     )
+
     compute = attr.ib(
         default=attr.Factory(dict),
         validator=attr.validators.deep_iterable(
@@ -41,8 +47,25 @@ class Activity(SchemaBase):
             iterable_validator=attr.validators.instance_of(dict),
         ),
     )
-    _schemaType = attr.ib(default="reproschema:Activity")
 
+    # UI
+    shuffle = attr.ib(
+        default=False,
+        validator=attr.validators.optional(attr.validators.instance_of(bool)),
+    )
+
+    # Activity attributes not encoded in schema but useful for protocol creation
+    URI = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+
+    variableName = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+
+    # TODO This is currently unused
     @allow.validator
     def check_allow(self, attribute, value):
 
@@ -65,24 +88,8 @@ class Activity(SchemaBase):
                     f"allow property not a defined property! Got {e}, allowed list is {allow_list}"
                 )
 
-    # def __init__(self, version=None):
-    #     super().__init__(version)
-    #     self.schema["ui"] = {"shuffle": [], "order": [], "addProperties": []}
-    #
-    # def set_ui_shuffle(self, shuffle=False):
-    #     self.schema["ui"]["shuffle"] = shuffle
-
-    # def set_URI(self, URI):
-    #     self.URI = URI
-
-    # def get_URI(self):
-    #     return self.URI
-
-    # TODO
-    # preamble
-    # compute
-    # citation
-    # image
+    def set_compute(self, variable, expression):
+        self.compute = [{"variableName": variable, "jsExpression": expression}]
 
     # def set_defaults(self, name):
     #     self._ReproschemaSchema__set_defaults(name)  # this looks wrong
@@ -119,6 +126,7 @@ class Activity(SchemaBase):
     #
     #     ui_order = ["shuffle", "order", "addProperties"]
     #     self.sort_ui(ui_order)
+
     # def write(self, output_dir, filename):
     #     # self.sort()
     #     self._SchemaBase__write(output_dir, filename)
