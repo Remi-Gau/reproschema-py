@@ -55,6 +55,7 @@ def test_activity_new():
             "variableName": "activity1_total_score",
             "jsExpression": "item1 + item2",
         },
+        shuffle=False,
     )
 
     item_1 = Item(prefLabel="item 1", URI="./item_1", variableName="item_1")

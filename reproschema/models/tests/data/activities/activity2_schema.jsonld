@@ -47,10 +47,12 @@
                 ]
             }
         ],
+        "shuffle": false,
         "allow": [
             "reproschema:Skipped"
         ]
     },
+
     "compute": {
         "variableName": "activity1_total_score",
         "jsExpression": "item1 + item2"

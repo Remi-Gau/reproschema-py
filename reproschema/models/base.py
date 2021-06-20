@@ -97,12 +97,13 @@ class SchemaBase:
             "order": props["order"],
             "addProperties": props["addProperties"],
             "allow": props["allow"],
-            "shuffle": props["shuffle"],
         }
         ui_obj = {key: value for key, value in ui_obj.items() if bool(value)}
+        ui_obj["shuffle"] = props["shuffle"]
 
         del props["order"], props["addProperties"], props["shuffle"], props["allow"]
         props.update(schema)
+        print(ui_obj["shuffle"])
         props.update({"ui": ui_obj})
 
         props = {key: value for key, value in props.items() if bool(value)}
