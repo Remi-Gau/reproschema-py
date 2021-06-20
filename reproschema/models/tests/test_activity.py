@@ -52,10 +52,10 @@ def test_activity_new():
         },
     )
 
-    item_1 = Item(prefLabel="item 1")
+    item_1 = Item(prefLabel="item 1", URI="./item_1", variableName="item_1")
     activity.append_item(item_1)
 
-    item_2 = Item(prefLabel="item 2")
+    item_2 = Item(prefLabel="item 2", URI="./item_2", variableName="item_2")
     activity.append_item(item_2)
 
     activity.write(activity_dir, "activity2_schema.jsonld")

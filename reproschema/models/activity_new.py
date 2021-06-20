@@ -128,15 +128,15 @@ class Activity(SchemaBase):
 
     def append_item(self, item):
         additional_properties = {
-            "variableName": "item_1",
-            "isAbout": "./item_1",
+            "variableName": item.variableName,
+            "isAbout": item.URI,
             "isVis": item.visible,
             "requiredValue": item.required,
         }
         if item.skippable:
             self.allow = ["reproschema:Skipped"]
 
-        self.order.append("./item_1")
+        self.order.append(item.URI)
         self.addProperties.append(additional_properties)
         attr.validate(self)
 

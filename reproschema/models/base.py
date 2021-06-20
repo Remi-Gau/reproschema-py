@@ -86,7 +86,7 @@ class SchemaBase:
         Reused by the write method of the children classes
         """
         schema = {
-            "@context": "https://raw.githubusercontent.com/ReproNim/reproschema//contexts/generic",
+            "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
             "@type": str(self._schemaType),
             "@id": filename,
         }
