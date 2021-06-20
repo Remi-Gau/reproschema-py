@@ -55,7 +55,10 @@ def test_activity_new():
     item_1 = Item(prefLabel="item 1")
     activity.append_item(item_1)
 
-    activity.write(activity_dir, "newActivity1_schema.jsonld")
+    item_2 = Item(prefLabel="item 2")
+    activity.append_item(item_2)
+
+    activity.write(activity_dir, "activity2_schema.jsonld")
     activity_content, expected = load_jsons(activity)
     assert activity_content == expected
 
@@ -128,7 +131,7 @@ HELPER FUNCTIONS
 
 
 def load_jsons(obj):
-    output_file = os.path.join(activity_dir, "newActivity1_schema.jsonld")
+    output_file = os.path.join(activity_dir, "activity2_schema.jsonld")
     content = read_json(output_file)
 
     data_file = os.path.join(my_path, "data", "activities", "activity2_schema.jsonld")

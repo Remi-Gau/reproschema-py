@@ -25,6 +25,12 @@
                 "isAbout": "./item_1",
                 "isVis": true,
                 "requiredValue": true
+            },
+            {
+                "variableName": "item_2",
+                "isAbout": "./item_2",
+                "isVis": true,
+                "requiredValue": true
             }
         ],
         "allow": [
