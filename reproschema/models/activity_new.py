@@ -50,6 +50,10 @@ class Activity(SchemaBase):
 
     @allow.validator
     def check_allow(self, attribute, value):
+
+        if not (isinstance(value, list)):
+            raise ValueError(f"allow must be a list! Got {type(value)}")
+
         allow_list = [
             "reproschema:AllowExport",
             "reproschema:DisableBack",
@@ -59,14 +63,12 @@ class Activity(SchemaBase):
             "reproschema:DontKnow",
             "reproschema:TimedOut",
         ]
-        if not (isinstance(value, list)):
-            raise ValueError(f"allow must be a list! got {type(value)}")
-        else:
-            for e in value:
-                if e not in allow_list:
-                    raise ValueError(
-                        f"allow property not a defined property! got {e}, allowed list is {allow_list}"
-                    )
+
+        for e in value:
+            if e not in allow_list:
+                raise ValueError(
+                    f"allow property not a defined property! Got {e}, allowed list is {allow_list}"
+                )
 
     # def __init__(self, version=None):
     #     super().__init__(version)

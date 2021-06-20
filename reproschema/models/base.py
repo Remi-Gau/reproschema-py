@@ -3,6 +3,7 @@ import os
 import attr
 from pathlib import Path
 from collections import OrderedDict
+
 # import item_new
 
 """
@@ -41,24 +42,34 @@ SCHEMA_ORDER = [
 #     VERSION = version or DEFAULT_VERSION
 #     return URL + VERSION + "/contexts/generic"
 
+
 @attr.s
 class SchemaBase:
     """
     base class to deal with reproschema schemas.
     """
+
     # TODO might be more convenient to have some of the properties not centrlized in a single dictionnary
     #
     # Could be more practical to only create part or all of the dictionnary when write is called
     #
 
     def check_labels(self, attribute, value):
-        if not (isinstance(value, str) or isinstance(value, dict)):
-            raise ValueError(f'{attribute.name} must be a string or a dict! got {type(value)}')
+
+        if not isinstance(value, (str, dict)):
+            raise ValueError(
+                f"{attribute.name} must be a string or a dict! Got {type(value)}"
+            )
 
     prefLabel = attr.ib(kw_only=True, validator=check_labels)
     altLabel = attr.ib(default=None, validator=attr.validators.optional(check_labels))
-    description = attr.ib(default=None, validator=attr.validators.optional(attr.validators.instance_of(str)))
-    schemaVersion = attr.ib(default="1.0.0-rc4", validator=attr.validators.instance_of(str))
+    description = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
+    )
+    schemaVersion = attr.ib(
+        default="1.0.0-rc4", validator=attr.validators.instance_of(str)
+    )
     version = attr.ib(default="0.0.1", validator=attr.validators.instance_of(str))
     preamble = attr.ib(default=None, validator=attr.validators.optional(check_labels))
     # citation - string/uri ?
@@ -72,30 +83,29 @@ class SchemaBase:
 
     def __write(self, output_dir, filename):
         """
-            Reused by the write method of the children classes
+        Reused by the write method of the children classes
         """
         schema = {
             "@context": "https://raw.githubusercontent.com/ReproNim/reproschema//contexts/generic",
             "@type": str(self._schemaType),
-            "@id": filename
+            "@id": filename,
         }
         props = self.__dict__.copy()
         ui_obj = {
-            "order": props['order'],
-            "addProperties": props['addProperties'],
-            "allow": props['allow'],
-            "shuffle": props['shuffle']
+            "order": props["order"],
+            "addProperties": props["addProperties"],
+            "allow": props["allow"],
+            "shuffle": props["shuffle"],
         }
         ui_obj = {key: value for key, value in ui_obj.items() if bool(value)}
         print(ui_obj)
-        del props['order'], props['addProperties'], props['shuffle'], props['allow']
+        del props["order"], props["addProperties"], props["shuffle"], props["allow"]
         props.update(schema)
-        props.update({'ui': ui_obj})
+        props.update({"ui": ui_obj})
         props = {key: value for key, value in props.items() if bool(value)}
         reordered_dict = reorder_dict_skip_missing(props, SCHEMA_ORDER)
         with open(os.path.join(output_dir, filename), "w") as ff:
             json.dump(reordered_dict, ff, indent=4)
-
 
     # schema_type = None
     #
@@ -148,4 +158,3 @@ def reorder_dict_skip_missing(old_dict, key_list):
 # print(112, aa)
 # #
 # print(aa.write('./', 'activity3_schema.jsonld'))
-
