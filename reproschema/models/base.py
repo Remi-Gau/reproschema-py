@@ -43,7 +43,7 @@ SCHEMA_ORDER = [
 #     return URL + VERSION + "/contexts/generic"
 
 
-@attr.s
+@attr.s()
 class SchemaBase:
     """
     base class to deal with reproschema schemas.
@@ -68,7 +68,7 @@ class SchemaBase:
         validator=attr.validators.optional(attr.validators.instance_of(str)),
     )
     schemaVersion = attr.ib(
-        default="1.0.0-rc4", validator=attr.validators.instance_of(str)
+        default=DEFAULT_VERSION, validator=attr.validators.instance_of(str)
     )
     version = attr.ib(default="0.0.1", validator=attr.validators.instance_of(str))
     preamble = attr.ib(default=None, validator=attr.validators.optional(check_labels))
@@ -90,6 +90,7 @@ class SchemaBase:
             "@type": str(self._schemaType),
             "@id": filename,
         }
+
         props = self.__dict__.copy()
         ui_obj = {
             "order": props["order"],
@@ -98,12 +99,15 @@ class SchemaBase:
             "shuffle": props["shuffle"],
         }
         ui_obj = {key: value for key, value in ui_obj.items() if bool(value)}
-        print(ui_obj)
+
         del props["order"], props["addProperties"], props["shuffle"], props["allow"]
         props.update(schema)
         props.update({"ui": ui_obj})
+
         props = {key: value for key, value in props.items() if bool(value)}
+
         reordered_dict = reorder_dict_skip_missing(props, SCHEMA_ORDER)
+
         with open(os.path.join(output_dir, filename), "w") as ff:
             json.dump(reordered_dict, ff, indent=4)
 

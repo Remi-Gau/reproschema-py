@@ -11,8 +11,6 @@ class Activity(SchemaBase):
     class to deal with reproschema activities
     """
 
-    # schema_type = "reproschema:Activity"
-
     shuffle = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(bool)),
