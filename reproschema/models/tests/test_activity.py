@@ -2,6 +2,7 @@ import os, sys, json
 from ..base import SchemaBase
 from ..activity_new import Activity
 from ..item import Item
+from reproschema.validate import validate
 
 my_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -60,6 +61,10 @@ def test_activity_new():
 
     activity.write(activity_dir, "activity2_schema.jsonld")
     activity_content, expected = load_jsons(activity)
+
+    fp = os.path.join(activity_dir, "activity2_schema.jsonld")
+    validate(None, fp)
+
     assert activity_content == expected
 
 

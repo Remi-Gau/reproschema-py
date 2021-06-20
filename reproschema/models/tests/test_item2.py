@@ -2,6 +2,7 @@ import os, sys, json
 
 # from ..item import Item, ResponseOption
 from reproschema.models.item import Item
+from reproschema.validate import validate
 
 my_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -38,6 +39,9 @@ def test_text():
 
     item.write(item_dir, "text.jsonld")
     item_content, expected = load_jsons(item)
+
+    fp = os.path.join(item_dir, item.filename)
+    validate(None, fp)
     assert item_content == expected
 
     clean_up(item)
