@@ -1,8 +1,5 @@
-from reproschema.models.base import SchemaBase
-
-# import base
-# import item_new
 import attr
+from reproschema.models.base import SchemaBase
 
 
 @attr.s()

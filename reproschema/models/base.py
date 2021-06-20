@@ -1,10 +1,5 @@
-import json
-import os
-import attr
-from pathlib import Path
+import json, os, attr
 from collections import OrderedDict
-
-# import item_new
 
 """
 For any key that can be 'translated' we set english as the default language
@@ -49,11 +44,6 @@ class SchemaBase:
     base class to deal with reproschema schemas.
     """
 
-    # TODO might be more convenient to have some of the properties not centrlized in a single dictionnary
-    #
-    # Could be more practical to only create part or all of the dictionnary when write is called
-    #
-
     def check_labels(self, attribute, value):
 
         if not isinstance(value, (str, dict)):
@@ -62,23 +52,34 @@ class SchemaBase:
             )
 
     prefLabel = attr.ib(kw_only=True, validator=check_labels)
+
     altLabel = attr.ib(default=None, validator=attr.validators.optional(check_labels))
+
     description = attr.ib(
         default=None,
         validator=attr.validators.optional(attr.validators.instance_of(str)),
     )
+
     schemaVersion = attr.ib(
         default=DEFAULT_VERSION, validator=attr.validators.instance_of(str)
     )
+
     version = attr.ib(default="0.0.1", validator=attr.validators.instance_of(str))
+
     preamble = attr.ib(default=None, validator=attr.validators.optional(check_labels))
+
     # citation - string/uri ?
     citation = attr.ib(default=None)
+
     # image - iri/mediaobject
     image = attr.ib(default=None)
+
     audio = attr.ib(default=None)
+
     video = attr.ib(default=None)
+
     about = attr.ib(default=None)
+
     _schemaType = attr.ib(default=None)
 
     def __write(self, output_dir, filename):
