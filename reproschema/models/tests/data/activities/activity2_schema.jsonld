@@ -18,24 +18,41 @@
     "ui": {
         "order": [
             "./item_1",
-            "./item_2"
+            "./item_2",
+            "./activity1_total_score"
         ],
         "addProperties": [
             {
                 "variableName": "item_1",
                 "isAbout": "./item_1",
                 "isVis": true,
-                "requiredValue": true
+                "requiredValue": true,
+                "allow": [
+                    "reproschema:Skipped"
+                ]
             },
             {
                 "variableName": "item_2",
                 "isAbout": "./item_2",
                 "isVis": true,
                 "requiredValue": true
+            },
+            {
+                "variableName": "activity1_total_score",
+                "isAbout": "./activity1_total_score",
+                "isVis": false,
+                "requiredValue": true,
+                "allow": [
+                    "reproschema:Skipped"
+                ]
             }
         ],
         "allow": [
             "reproschema:Skipped"
         ]
+    },
+    "compute": {
+        "variableName": "activity1_total_score",
+        "jsExpression": "item1 + item2"
     }
 }

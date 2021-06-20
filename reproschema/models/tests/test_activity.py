@@ -51,83 +51,47 @@ def test_activity_new():
             "@type": "AudioObject",
             "contentUrl": "http://example.com/sample-image.png",
         },
+        compute={
+            "variableName": "activity1_total_score",
+            "jsExpression": "item1 + item2",
+        },
     )
 
     item_1 = Item(prefLabel="item 1", URI="./item_1", variableName="item_1")
     activity.append_item(item_1)
 
-    item_2 = Item(prefLabel="item 2", URI="./item_2", variableName="item_2")
+    item_2 = Item(
+        prefLabel="item 2", URI="./item_2", variableName="item_2", skippable=False
+    )
     activity.append_item(item_2)
+
+    item_3 = Item(
+        prefLabel="activity1_total_score",
+        URI="./activity1_total_score",
+        variableName="activity1_total_score",
+        visible=False,
+    )
+    activity.append_item(item_3)
 
     activity.write(activity_dir, "activity2_schema.jsonld")
     activity_content, expected = load_jsons(activity)
 
     fp = os.path.join(activity_dir, "activity2_schema.jsonld")
     validate(None, fp)
-
     assert activity_content == expected
 
+    # clean_up(activity)
 
-# def test_activity():
-
-# activity = Activity()
-# activity.set_defaults("activity1")
-# activity.set_description("Activity example 1")
-# activity.set_pref_label("Example 1")
-# activity.set_preamble(
-#     "Over the last 2 weeks, how often have you been bothered by any of the following problems?"
-# )
-# activity.set_citation("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/")
-# activity.set_image(
-#     {"@type": "AudioObject", "contentUrl": "http://example.com/sample-image.png"}
-# )
-# activity.set_compute("activity1_total_score", "item1 + item2")
-
-# item_1 = Item()
-# item_1.set_defaults("item1")
 
 # TODO
 # probably want to have items/item_name be a default
 # item_1.set_URI(os.path.join("items", item_1.get_filename()))
+
 # TODO
 # We probably want a method to change those values rather that modifying
 # the instance directly
 # item_1.skippable = False
 # item_1.required = True
-# """
-# Items are appended and this updates the  the ``ui`` ``order`` and ``addProperties``
-# """
-# activity.append_item(item_1)
-
-# item_2 = Item()
-# item_2.set_defaults("item2")
-# item_2.set_filename("item_two")
-#
-# """
-# In this case the URI is relative to where the activity file will be saved
-# """
-# item_2.set_URI(os.path.join("..", "other_dir", item_2.get_filename()))
-# item_2.required = True
-# activity.append_item(item_2)
-#
-# item_3 = Item()
-# item_3.set_defaults("activity1_total_score")
-# """
-# By default all files are save with a json.ld extension but this can be changed
-# """
-# file_ext = ""
-# item_3.set_filename("activity1_total_score", file_ext)
-# item_3.set_URI(os.path.join("items", item_3.get_filename()))
-# item_3.skippable = False
-# item_3.required = True
-# item_3.visible = False
-# activity.append_item(item_3)
-
-# activity.write(activity_dir, "newActivity1_schema.jsonld")
-# activity_content, expected = load_jsons(activity)
-# assert activity_content == expected
-
-# clean_up(activity)
 
 
 """
@@ -151,5 +115,4 @@ def read_json(file):
 
 
 def clean_up(obj):
-    pass
-    # os.remove(os.path.join(activity_dir, obj.get_filename()))
+    os.remove(os.path.join(activity_dir, obj.get_filename()))

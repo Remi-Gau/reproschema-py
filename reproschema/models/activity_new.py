@@ -35,10 +35,10 @@ class Activity(SchemaBase):
         ),
     )
     compute = attr.ib(
-        default=attr.Factory(list),
+        default=attr.Factory(dict),
         validator=attr.validators.deep_iterable(
-            member_validator=attr.validators.instance_of(dict),
-            iterable_validator=attr.validators.instance_of(list),
+            member_validator=attr.validators.instance_of(str),
+            iterable_validator=attr.validators.instance_of(dict),
         ),
     )
     _schemaType = attr.ib(default="reproschema:Activity")
@@ -130,8 +130,10 @@ class Activity(SchemaBase):
             "isVis": item.visible,
             "requiredValue": item.required,
         }
+        # TODO: that the item is skippable does not mean that the activity should be
         if item.skippable:
             self.allow = ["reproschema:Skipped"]
+            additional_properties["allow"] = ["reproschema:Skipped"]
 
         self.order.append(item.URI)
         self.addProperties.append(additional_properties)
