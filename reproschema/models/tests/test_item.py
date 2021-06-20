@@ -20,58 +20,12 @@ reproschema/tests/data
 reproschema_test_data = os.path.join(my_path, "..", "..", "tests", "data")
 
 
-def test_default():
-
-    item = Item()
-    item.set_defaults()
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
 # TODO
 # many items types (audio ones for examples) are not yet tested because the code cannot yet generate them.
 
 """
 text items
 """
-
-
-def test_text():
-
-    text_length = 100
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("text")
-    item.set_input_type_as_text(text_length)
-
-    item.set_question("question for text item")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
-def test_multitext():
-
-    text_length = 50
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("multitext")
-    item.set_input_type_as_multitext(text_length)
-
-    item.set_question("This is an item where the user can input several text field.")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
 
 
 """

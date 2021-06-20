@@ -1,16 +1,9 @@
-import os, sys, json
-
-# from ..item import Item, ResponseOption
+import os, json, pytest
 from reproschema.models.item import Item
 from reproschema.validate import validate
 
 my_path = os.path.dirname(os.path.abspath(__file__))
 
-# Left here in case Remi and python path or import can't be friends once again.
-# sys.path.insert(0, my_path + "/../")
-
-# TODO
-# refactor across the different test modules
 item_dir = os.path.join(my_path, "items")
 if not os.path.exists(item_dir):
     os.makedirs(os.path.join(item_dir))
@@ -27,17 +20,36 @@ text items
 """
 
 
-def test_text():
+@pytest.mark.parametrize(
+    "inputType, description, prefLabel, question, responseOptions",
+    [
+        (
+            "text",
+            "text",
+            {"en": "text"},
+            {"en": "question for text item"},
+            {"maxLength": 100, "valueType": "xsd:string"},
+        ),
+        (
+            "multitext",
+            "multitext",
+            {"en": "multitext"},
+            {"en": "question for multitext item"},
+            {"maxLength": 50, "valueType": "xsd:string"},
+        ),
+    ],
+)
+def test_text(inputType, description, prefLabel, question, responseOptions):
 
     item = Item(
-        inputType="text",
-        prefLabel={"en": "text"},
-        question={"en": "question for text item"},
-        responseOptions={"maxLength": 100, "valueType": "xsd:string"},
-        description="text",
+        inputType=inputType,
+        description=description,
+        prefLabel=prefLabel,
+        question=question,
+        responseOptions=responseOptions,
     )
 
-    item.write(item_dir, "text.jsonld")
+    item.write(item_dir, inputType + ".jsonld")
     item_content, expected = load_jsons(item)
 
     fp = os.path.join(item_dir, item.filename)

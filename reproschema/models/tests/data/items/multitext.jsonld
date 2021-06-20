@@ -9,7 +9,7 @@
     "schemaVersion": "1.0.0-rc4",
     "version": "0.0.1",
     "question": {
-        "en": "This is an item where the user can input several text field."
+        "en": "question for multitext item"
     },
     "ui": {
         "inputType": "multitext"
