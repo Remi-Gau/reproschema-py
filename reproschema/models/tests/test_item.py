@@ -33,21 +33,6 @@ items with a specific "type"
 """
 
 
-def test_email():
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("email")
-    item.set_input_type_as_email()
-
-    item.set_question("input email address")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
 def test_participant_id():
 
     item = Item("1.0.0-rc4")
