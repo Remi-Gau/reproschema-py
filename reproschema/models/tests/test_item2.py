@@ -66,6 +66,7 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
         ("pid", {"en": "participant id"}, {"en": "input the participant id number"}),
         ("date", {"en": "date"}, {"en": "input a date"}),
         ("timeRange", {"en": "time range"}, {"en": "input a time range"}),
+        ("year", {"en": "year"}, {"en": "input a year"}),
     ],
 )
 def test_specific_input_type(inputType, prefLabel, question):

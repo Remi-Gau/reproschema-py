@@ -32,22 +32,6 @@ text items
 items with a specific "type"
 """
 
-
-def test_year():
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("year")
-    item.set_input_type_as_year()
-
-    item.set_question("input a year")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
 """
 Items that refer to a preset list of responses choices
 """

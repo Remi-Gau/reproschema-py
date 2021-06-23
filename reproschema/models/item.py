@@ -73,7 +73,7 @@ class Item(SchemaBase):
 
         if self.inputType in ["email", "pid"]:
             self.responseOptions = {"valueType": "xsd:string"}
-        elif self.inputType in ["date"]:
+        elif self.inputType in ["date", "year"]:
             self.responseOptions = {"valueType": "xsd:date"}
         elif self.inputType in ["timeRange"]:
             self.responseOptions = {"valueType": "xsd:datetime"}
