@@ -59,6 +59,24 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
     clean_up(item)
 
 
+@pytest.mark.parametrize(
+    "inputType, prefLabel,question",
+    [("email", {"en": "email"}, {"en": "input email address"})],
+)
+def test_specific_input_type(inputType, prefLabel, question):
+
+    item = Item(inputType=inputType, prefLabel=prefLabel, question=question)
+
+    item.write(item_dir, inputType + ".jsonld")
+    item_content, expected = load_jsons(item)
+
+    fp = os.path.join(item_dir, item.filename)
+    validate(None, fp)
+    assert item_content == expected
+
+    clean_up(item)
+
+
 """
 HELPER FUNCTIONS
 """
