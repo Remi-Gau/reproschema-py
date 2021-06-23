@@ -33,21 +33,6 @@ items with a specific "type"
 """
 
 
-def test_time_range():
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("time range")
-    item.set_input_type_as_time_range()
-
-    item.set_question("input a time range")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
 def test_year():
 
     item = Item("1.0.0-rc4")

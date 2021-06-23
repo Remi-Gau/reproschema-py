@@ -65,6 +65,7 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
         ("email", {"en": "email"}, {"en": "input email address"}),
         ("pid", {"en": "participant id"}, {"en": "input the participant id number"}),
         ("date", {"en": "date"}, {"en": "input a date"}),
+        ("timeRange", {"en": "time range"}, {"en": "input a time range"}),
     ],
 )
 def test_specific_input_type(inputType, prefLabel, question):
