@@ -34,10 +34,7 @@ class Item(SchemaBase):
 
     question = attr.ib(default=None, validator=attr.validators.optional(check_labels))
 
-    inputType = attr.ib(
-        default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(str)),
-    )
+    inputType = attr.ib(default=None, validator=attr.validators.instance_of(str))
 
     URI = attr.ib(
         default=None,
@@ -71,6 +68,10 @@ class Item(SchemaBase):
     required = attr.ib(default=True)
 
     _schemaType = attr.ib(default="reproschema:Field")
+
+    def __attrs_post_init__(self):
+        if self.inputType == "email":
+            self.responseOptions = {"valueType": "xsd:string"}
 
     def write(self, output_dir, filename):
         """
@@ -286,9 +287,6 @@ def reorder_dict_skip_missing(old_dict, key_list):
 #         self.response_options.set_type("string")
 #         self.response_options.set_length(length)
 #
-#     def set_input_type_as_email(self):
-#         self.set_input_type("email")
-#         self.response_options.unset(["maxLength"])
 #
 #     def set_input_type_as_id(self):
 #         """
@@ -332,8 +330,7 @@ def reorder_dict_skip_missing(old_dict, key_list):
 #     # or should they be brought up into the base class?
 #     # or be made part of an UI class?
 #
-#     def set_input_type(self, input_type):
-#         self.schema["ui"]["inputType"] = input_type
+#
 #
 #     def set_read_only_value(self, value):
 #         self.schema["ui"]["readonlyValue"] = value
