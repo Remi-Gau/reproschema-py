@@ -73,6 +73,8 @@ class Item(SchemaBase):
 
         if self.inputType in ["email", "pid"]:
             self.responseOptions = {"valueType": "xsd:string"}
+        elif self.inputType in ["date"]:
+            self.responseOptions = {"valueType": "xsd:date"}
 
     def write(self, output_dir, filename):
         """
