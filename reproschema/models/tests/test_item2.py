@@ -61,7 +61,10 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
 
 @pytest.mark.parametrize(
     "inputType, prefLabel, question",
-    [("email", {"en": "email"}, {"en": "input email address"})],
+    [
+        ("email", {"en": "email"}, {"en": "input email address"}),
+        ("pid", {"en": "participant id"}, {"en": "input the participant id number"}),
+    ],
 )
 def test_specific_input_type(inputType, prefLabel, question):
 

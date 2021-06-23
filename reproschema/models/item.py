@@ -70,7 +70,8 @@ class Item(SchemaBase):
     _schemaType = attr.ib(default="reproschema:Field")
 
     def __attrs_post_init__(self):
-        if self.inputType == "email":
+
+        if self.inputType in ["email", "pid"]:
             self.responseOptions = {"valueType": "xsd:string"}
 
     def write(self, output_dir, filename):
@@ -92,6 +93,7 @@ class Item(SchemaBase):
         props.update(schema)
         props.update({"ui": ui_obj})
 
+        # store filename to make sure it can be accessed at the activity level
         self.filename = filename
 
         props = {key: value for key, value in props.items() if bool(value)}

@@ -33,21 +33,6 @@ items with a specific "type"
 """
 
 
-def test_participant_id():
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("participant id")
-    item.set_input_type_as_id()
-
-    item.set_question("input the participant id number")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
 def test_date():
 
     item = Item("1.0.0-rc4")
