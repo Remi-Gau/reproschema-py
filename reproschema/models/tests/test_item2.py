@@ -67,6 +67,8 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
         ("date", {"en": "date"}, {"en": "input a date"}),
         ("timeRange", {"en": "time range"}, {"en": "input a time range"}),
         ("year", {"en": "year"}, {"en": "input a year"}),
+        ("float", {"en": "float"}, {"en": "input a float"}),
+        ("integer", {"en": "integer"}, {"en": "input an integer"}),
     ],
 )
 def test_specific_input_type(inputType, prefLabel, question):

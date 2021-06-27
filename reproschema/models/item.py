@@ -77,6 +77,13 @@ class Item(SchemaBase):
             self.responseOptions = {"valueType": "xsd:date"}
         elif self.inputType in ["timeRange"]:
             self.responseOptions = {"valueType": "xsd:datetime"}
+        elif self.inputType in ["integer"]:
+            self.responseOptions = {"valueType": "xsd:integer"}
+        elif self.inputType in ["float"]:
+            self.responseOptions = {"valueType": "xsd:float"}
+
+        if self.inputType in ["integer"]:
+            self.inputType = "number"
 
     def write(self, output_dir, filename):
         """

@@ -1,37 +1,3 @@
-import os, sys, json
-
-from ..item import Item, ResponseOption
-
-my_path = os.path.dirname(os.path.abspath(__file__))
-
-# Left here in case Remi and python path or import can't be friends once again.
-# sys.path.insert(0, my_path + "/../")
-
-# TODO
-# refactor across the different test modules
-item_dir = os.path.join(my_path, "items")
-if not os.path.exists(item_dir):
-    os.makedirs(os.path.join(item_dir))
-
-"""
-Only for the few cases when we want to check against some of the files in
-reproschema/tests/data
-"""
-reproschema_test_data = os.path.join(my_path, "..", "..", "tests", "data")
-
-
-# TODO
-# many items types (audio ones for examples) are not yet tested because the code cannot yet generate them.
-
-"""
-text items
-"""
-
-
-"""
-items with a specific "type"
-"""
-
 """
 Items that refer to a preset list of responses choices
 """
@@ -71,41 +37,6 @@ def test_state():
     item.set_defaults("state")
     item.set_input_type_as_state()
     item.set_question("select a USA state")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
-"""
-NUMERICAL ITEMS
-"""
-
-
-def test_float():
-
-    item = Item("1.0.0-rc4")
-    item.set_defaults("float")
-    item.set_description("This is a float item.")
-    item.set_input_type_as_float()
-    item.set_question("This is an item where the user can input a float.")
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
-
-def test_integer():
-
-    item = Item()
-    item.set_defaults("integer")
-    item.set_description("This is a integer item.")
-    item.set_input_type_as_int()
-    item.set_question("This is an item where the user can input a integer.")
 
     item.write(item_dir)
     item_content, expected = load_jsons(item)
@@ -251,29 +182,3 @@ def test_read_only():
     assert item_content == expected
 
     clean_up(item)
-
-
-"""
-HELPER FUNCTIONS
-"""
-
-
-def load_jsons(item):
-
-    output_file = os.path.join(item_dir, item.get_filename())
-    item_content = read_json(output_file)
-
-    data_file = os.path.join(my_path, "data", "items", item.get_filename())
-    expected = read_json(data_file)
-
-    return item_content, expected
-
-
-def read_json(file):
-
-    with open(file, "r") as ff:
-        return json.load(ff)
-
-
-def clean_up(obj):
-    os.remove(os.path.join(item_dir, obj.get_filename()))
