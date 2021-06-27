@@ -10,25 +10,6 @@ def test_radio():
 
     item = Item("1.0.0-rc4")
     item.set_defaults("radio")
-
-    item.set_question("question for radio item", "en")
-
-    response_options = ResponseOption()
-    response_options.add_choice("Not at all", 0, "en")
-    response_options.add_choice("Several days", 1, "en")
-    # TODO
-    # set_min and set_max cold probably be combined into a single method that gets
-    # those values from the content of the choice key
-    response_options.set_max(1)
-
-    item.set_input_type_as_radio(response_options)
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
     item.set_filename("radio multiple")
     item.set_description("radio multiple")
     item.set_pref_label("radio multiple")
@@ -46,23 +27,6 @@ def test_radio():
 def test_select():
 
     item = Item()
-    item.set_defaults("select")
-    item.set_question("question for select item")
-
-    response_options = ResponseOption()
-    response_options.add_choice("Response option 1", 0)
-    response_options.add_choice("Response option 2", 1)
-    response_options.add_choice("Response option 3", 2)
-    response_options.set_max(2)
-
-    item.set_input_type_as_select(response_options)
-
-    item.write(item_dir)
-    item_content, expected = load_jsons(item)
-    assert item_content == expected
-
-    clean_up(item)
-
     item.set_filename("select multiple")
     item.set_description("select multiple")
     item.set_pref_label("select multiple")

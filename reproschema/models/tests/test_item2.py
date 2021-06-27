@@ -37,6 +37,58 @@ text items
             {"en": "question for multitext item"},
             {"maxLength": 50, "valueType": "xsd:string"},
         ),
+        (
+            "select",
+            "select",
+            {"en": "select"},
+            {"en": "question for select item"},
+            {
+                "valueType": "xsd:integer",
+                "minValue": 0,
+                "maxValue": 2,
+                "multipleChoice": False,
+                "choices": [
+                    {"name": {"en": "Response option 1"}, "value": 0},
+                    {"name": {"en": "Response option 2"}, "value": 1},
+                    {"name": {"en": "Response option 3"}, "value": 2},
+                ],
+            },
+        ),
+        (
+            "radio",
+            "radio",
+            {"en": "radio"},
+            {"en": "question for radio item"},
+            {
+                "valueType": "xsd:integer",
+                "minValue": 0,
+                "maxValue": 1,
+                "multipleChoice": False,
+                "choices": [
+                    {"name": {"en": "Not at all"}, "value": 0},
+                    {"name": {"en": "Several days"}, "value": 1},
+                ],
+            },
+        ),
+        (
+            "slider",
+            "slider",
+            {"en": "slider"},
+            {"en": "question for slider item"},
+            {
+                "valueType": "xsd:integer",
+                "minValue": 0,
+                "maxValue": 4,
+                "multipleChoice": False,
+                "choices": [
+                    {"name": {"en": "not at all"}, "value": 0},
+                    {"name": {"en": "a bit"}, "value": 1},
+                    {"name": {"en": "so so"}, "value": 2},
+                    {"name": {"en": "a lot"}, "value": 3},
+                    {"name": {"en": "very much"}, "value": 4},
+                ],
+            },
+        ),
     ],
 )
 def test_text(inputType, description, prefLabel, question, responseOptions):
