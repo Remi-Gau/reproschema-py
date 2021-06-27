@@ -69,6 +69,9 @@ def test_text(inputType, description, prefLabel, question, responseOptions):
         ("year", {"en": "year"}, {"en": "input a year"}),
         ("float", {"en": "float"}, {"en": "input a float"}),
         ("integer", {"en": "integer"}, {"en": "input an integer"}),
+        ("selectLanguage", {"en": "language"}, {"en": "select language"}),
+        ("selectState", {"en": "state"}, {"en": "select a USA state"}),
+        ("selectCountry", {"en": "country"}, {"en": "select a country"}),
     ],
 )
 def test_specific_input_type(inputType, prefLabel, question):

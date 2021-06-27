@@ -81,6 +81,21 @@ class Item(SchemaBase):
             self.responseOptions = {"valueType": "xsd:integer"}
         elif self.inputType in ["float"]:
             self.responseOptions = {"valueType": "xsd:float"}
+        elif self.inputType in ["selectLanguage"]:
+            self.responseOptions = {
+                "valueType": "xsd:string",
+                "choices": "https://raw.githubusercontent.com/ReproNim/reproschema-library/master/resources/languages.json",
+            }
+        elif self.inputType in ["selectCountry"]:
+            self.responseOptions = {
+                "valueType": "xsd:string",
+                "choices": "https://raw.githubusercontent.com/samayo/country-json/master/src/country-by-name.json",
+            }
+        elif self.inputType in ["selectState"]:
+            self.responseOptions = {
+                "valueType": "xsd:string",
+                "choices": "https://gist.githubusercontent.com/mshafrir/2646763/raw/8b0dbb93521f5d6889502305335104218454c2bf/states_hash.json",
+            }
 
         if self.inputType in ["integer"]:
             self.inputType = "number"
@@ -131,32 +146,6 @@ def reorder_dict_skip_missing(old_dict, key_list):
 # DEFAULT_LANG = "en"
 #
 #
-# class Item(SchemaBase):
-#     """
-#     class to deal with reproschema items
-#     """
-#
-#     def __init__(self, version=None):
-#         super().__init__(version)
-#         self.schema["ui"] = {"inputType": []}
-#         self.schema["question"] = {}
-#         """
-#         The responseOptions dictionnary is kept empty until the file has to be written
-#         then it gets its content wit the method `set_response_options`
-#         from the `options` dictionnary of an instance of the ResponseOptions class that is kept in
-#         ``self.response_options``
-#         """
-#         self.schema["responseOptions"] = {}
-#         self.response_options = ResponseOption()
-#
-#         # default input type is "text"
-#         self.set_input_type_as_text()
-#
-#     def set_defaults(self, name="default"):
-#         self._SchemaBase__set_defaults(name)
-#         self.set_filename(name)
-#         self.set_input_type_as_text()
-#
 #     def set_filename(self, name, ext=".jsonld"):
 #         """
 #         Note there is no _schema suffix for items names
@@ -183,130 +172,6 @@ def reorder_dict_skip_missing(old_dict, key_list):
 #     # save: SaveData/SaveData.vue
 #     # static: Static/Static.vue
 #     # StaticReadOnly: Static/Static.vue
-#
-#     def set_basic_response_type(self, response_type):
-#         """
-#         Handles the dispatching to other methods for specific item creations
-#         Does not cover all items types (maybe it should as this would help
-#         from an API point of view to pass everything through this function)
-#         The default is "text" input type
-#         """
-#         self.set_input_type_as_text()
-#
-#         if response_type == "int":
-#             self.set_input_type_as_int()
-#
-#         elif response_type == "float":
-#             self.set_input_type_as_float()
-#
-#         elif response_type == "date":
-#             self.set_input_type_as_date()
-#
-#         elif response_type == "time range":
-#             self.set_input_type_as_time_range()
-#
-#         elif response_type == "language":
-#             self.set_input_type_as_language()
-#
-#     """
-#     input types with different response choices
-#
-#     For many items it is necessary to call
-#
-#         self.response_options.unset
-#
-#     To remove unecessary or unwanted keys from the response_options
-#     dictionary.
-#     Many of those are put there by the constructor of that set
-#     the default input type as ``self.set_input_type_as_text()``
-#     so it might be better to maybe have a more minimalistic constructor.
-#
-#     """
-#
-#     def set_input_type_as_int(self):
-#         self.set_input_type("number")
-#         self.response_options.set_type("integer")
-#         self.response_options.unset(["maxLength"])
-#
-#     def set_input_type_as_float(self):
-#         self.set_input_type("float")
-#         self.response_options.set_type("float")
-#         self.response_options.unset(["maxLength"])
-#
-#     def set_input_type_as_date(self):
-#         self.set_input_type("date")
-#         self.response_options.unset(["maxLength"])
-#         self.response_options.set_type("date")
-#
-#     def set_input_type_as_time_range(self):
-#         self.set_input_type("timeRange")
-#         self.response_options.unset(["maxLength"])
-#         self.response_options.set_type("datetime")
-#
-#     def set_input_type_as_year(self):
-#         self.set_input_type("year")
-#         self.response_options.unset(["maxLength"])
-#         self.response_options.set_type("date")
-#
-#     """
-#     input types with preset response choices
-#     """
-#
-#     def set_input_type_as_language(self):
-#
-#         URL = "https://raw.githubusercontent.com/ReproNim/reproschema-library/"
-#
-#         self.set_input_type("selectLanguage")
-#
-#         self.response_options.set_type("string")
-#         self.response_options.set_multiple_choice(True)
-#         self.response_options.use_preset(URL + "master/resources/languages.json")
-#         self.response_options.unset(["maxLength"])
-#
-#     def set_input_type_as_country(self):
-#
-#         URL = "https://raw.githubusercontent.com/samayo/country-json/master/src/country-by-name.json"
-#
-#         self.set_input_type("selectCountry")
-#
-#         self.response_options.set_type("string")
-#         self.response_options.use_preset(URL)
-#         self.response_options.set_length(50)
-#
-#     def set_input_type_as_state(self):
-#
-#         URL = "https://gist.githubusercontent.com/mshafrir/2646763/raw/8b0dbb93521f5d6889502305335104218454c2bf/states_hash.json"
-#
-#         self.set_input_type("selectState")
-#
-#         self.response_options.set_type("string")
-#         self.response_options.use_preset(URL)
-#         self.response_options.unset(["maxLength"])
-#
-#     """
-#     input types requiring user typed input
-#     """
-#
-#     def set_input_type_as_text(self, length=300):
-#         self.set_input_type("text")
-#         self.response_options.set_type("string")
-#         self.response_options.set_length(length)
-#         self.response_options.unset(
-#             ["maxValue", "minValue", "multipleChoice", "choices"]
-#         )
-#
-#     def set_input_type_as_multitext(self, length=300):
-#         self.set_input_type("multitext")
-#         self.response_options.set_type("string")
-#         self.response_options.set_length(length)
-#
-#
-#     def set_input_type_as_id(self):
-#         """
-#         for participant id items
-#         """
-#         self.set_input_type("pid")
-#         self.response_options.unset(["maxLength"])
 #
 #     """
 #     input types with 'different response choices'

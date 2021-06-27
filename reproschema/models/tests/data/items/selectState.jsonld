@@ -1,22 +1,20 @@
 {
     "@context": "https://raw.githubusercontent.com/ReproNim/reproschema/1.0.0-rc4/contexts/generic",
     "@type": "reproschema:Field",
-    "@id": "country.jsonld",
+    "@id": "selectState.jsonld",
     "prefLabel": {
-        "en": "country"
+        "en": "state"
     },
-    "description": "country",
     "schemaVersion": "1.0.0-rc4",
     "version": "0.0.1",
     "question": {
-        "en": "select a country"
+        "en": "select a USA state"
     },
     "ui": {
-        "inputType": "selectCountry"
+        "inputType": "selectState"
     },
     "responseOptions": {
         "valueType": "xsd:string",
-        "maxLength": 50,
-        "choices": "https://raw.githubusercontent.com/samayo/country-json/master/src/country-by-name.json"
+        "choices": "https://gist.githubusercontent.com/mshafrir/2646763/raw/8b0dbb93521f5d6889502305335104218454c2bf/states_hash.json"
     }
 }
