@@ -1,90 +1,114 @@
-import os, sys, json
+import os
+from pathlib import Path
 
-from ..protocol import Protocol
-from ..activity import Activity
+from reproschema.models.activity import Activity
+from reproschema.models.base import Message
+from reproschema.models.protocol import Protocol
 
-my_path = os.path.dirname(os.path.abspath(__file__))
+my_path = Path(__file__).resolve().parent
 
-# Left here in case Remi and python path or import can't be friends once again.
-# sys.path.insert(0, my_path + "/../")
+from utils import load_jsons, clean_up, output_dir
 
-# TODO
-# refactor across the different test modules
-protocol_dir = os.path.join(my_path, "protocols")
-if not os.path.exists(protocol_dir):
-    os.makedirs(os.path.join(protocol_dir))
-
-"""
-Only for the few cases when we want to check against some of the files in
-reproschema/tests/data
-"""
-reproschema_test_data = os.path.join(my_path, "..", "..", "tests", "data")
+protocol_dir = output_dir("protocols")
 
 
 def test_default():
-
     """
     FYI: The default protocol does not conform to the schema
     so  `reproschema validate` will complain if you run it in this
     """
 
-    protocol = Protocol()
-    protocol.set_defaults()
+    protocol = Protocol(name="default", output_dir=protocol_dir)
+    protocol.write()
 
-    protocol.write(protocol_dir)
-    protocol_content, expected = load_jsons(protocol)
+    protocol_content, expected = load_jsons(protocol_dir, protocol)
     assert protocol_content == expected
 
-    clean_up(protocol)
+    clean_up(protocol_dir, protocol)
 
 
 def test_protocol():
 
-    protocol = Protocol()
-    protocol.set_defaults("protocol1")
-    protocol.set_pref_label("Protocol1")
-    protocol.set_description("example Protocol")
-    protocol.set_landing_page("http://example.com/sample-readme.md")
+    protocol = Protocol(
+        name="protocol1",
+        prefLabel="Protocol1",
+        lang="en",
+        description="example Protocol",
+        output_dir=protocol_dir,
+    )
+    protocol.set_preamble(preamble="protocol1", lang="en")
+    protocol.set_landing_page(page="http://example.com/sample-readme.md")
+    protocol.ui.AutoAdvance = True
+    protocol.ui.AllowExport = True
+    protocol.ui.DisableBack = True
+    protocol.update()
 
-    auto_advance = True
-    allow_export = True
-    disable_back = True
-    protocol.set_ui_allow(auto_advance, allow_export, disable_back)
+    activity_1 = Activity(
+        name="activity1",
+        prefLabel="Screening",
+        lang="en",
+        output_dir=os.path.join("..", "activities"),
+    )
 
-    activity_1 = Activity()
-    activity_1.set_defaults("activity1")
-    activity_1.set_pref_label("Screening")
-    activity_1.set_URI(os.path.join("..", "activities", activity_1.get_filename()))
     protocol.append_activity(activity_1)
 
-    protocol.write(protocol_dir)
-    protocol_content, expected = load_jsons(protocol)
+    protocol.write()
+
+    protocol_content, expected = load_jsons(protocol_dir, protocol)
     assert protocol_content == expected
 
-    clean_up(protocol)
+    clean_up(protocol_dir, protocol)
 
 
-"""
-HELPER FUNCTIONS
-"""
+def test_protocol_1():
 
+    messages = [
+        Message(
+            jsExpression="item1 > 0",
+            message="Test message: Triggered when item1 value is greater than 0",
+        ).schema
+    ]
 
-def load_jsons(obj):
+    protocol = Protocol(
+        name="protocol1",
+        prefLabel="Protocol1",
+        lang="en",
+        description="example Protocol",
+        messages=messages,
+        output_dir=protocol_dir,
+        suffix="",
+    )
+    protocol.set_pref_label(pref_label="Protocol1_es", lang="es")
+    protocol.set_landing_page(page="http://example.com/sample-readme.md", lang="en")
+    protocol.ui.AutoAdvance = True
+    protocol.ui.AllowExport = True
+    protocol.ui.DisableBack = True
+    protocol.at_context = "../../contexts/generic"
+    protocol.update()
 
-    output_file = os.path.join(protocol_dir, obj.get_filename())
-    content = read_json(output_file)
+    activity_1 = Activity(
+        name="activity1",
+        prefLabel="Screening",
+        limit="P1W/2020-08-01T13:00:00Z",
+        randomMaxDelay="PT12H",
+        schedule="R5/2008-01-01T13:00:00Z/P1Y2M10DT2H30M",
+        lang="en",
+        suffix="",
+        output_dir=os.path.join("..", "activities"),
+        visible=True,
+        skippable=False,
+        required=None,
+    )
 
-    data_file = os.path.join(my_path, "data", "protocols", obj.get_filename())
-    expected = read_json(data_file)
+    activity_1.ui.shuffle = False
+    activity_1.update()
+    activity_1.set_pref_label(pref_label="Screening_es", lang="es")
 
-    return content, expected
+    protocol.append_activity(activity_1)
 
+    protocol.write()
 
-def read_json(file):
+    protocol_content, expected = load_jsons(protocol_dir, protocol)
+    assert protocol_content == expected
 
-    with open(file, "r") as ff:
-        return json.load(ff)
-
-
-def clean_up(obj):
-    os.remove(os.path.join(protocol_dir, obj.get_filename()))
+    clean_up(protocol_dir, protocol)

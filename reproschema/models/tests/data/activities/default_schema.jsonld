@@ -8,13 +8,8 @@
     "description": "default",
     "schemaVersion": "1.0.0-rc4",
     "version": "0.0.1",
-    "preamble": {
-        "en": ""
-    },
     "ui": {
         "shuffle": false,
-        "order": [],
-        "addProperties": [],
         "allow": [
             "reproschema:AutoAdvance",
             "reproschema:AllowExport"

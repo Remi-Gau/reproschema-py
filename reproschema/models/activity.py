@@ -1,6 +1,12 @@
-from .base import SchemaBase
+from pathlib import Path
+from typing import Dict
+from typing import Optional
+from typing import Union
 
-DEFAULT_LANG = "en"
+from .base import COMMON_SCHEMA_ORDER
+from .base import SchemaBase
+from .item import Item
+from .utils import DEFAULT_LANG
 
 
 class Activity(SchemaBase):
@@ -8,62 +14,61 @@ class Activity(SchemaBase):
     class to deal with reproschema activities
     """
 
-    schema_type = "reproschema:Activity"
+    def __init__(
+        self,
+        name: Optional[str] = "activity",
+        schemaVersion: Optional[str] = None,
+        prefLabel: Optional[Union[str, Dict[str, str]]] = "activity",
+        altLabel: Optional[Union[str, Dict[str, str]]] = None,
+        description: Optional[str] = "",
+        preamble: Optional[str] = None,
+        citation: Optional[str] = None,
+        image: Optional[Union[str, Dict[str, str]]] = None,
+        audio: Optional[Union[str, Dict[str, str]]] = None,
+        video: Optional[Union[str, Dict[str, str]]] = None,
+        messages: Optional[Dict[str, str]] = None,
+        suffix: Optional[str] = "_schema",
+        visible: Optional[bool] = True,
+        required: Optional[bool] = False,
+        skippable: Optional[bool] = True,
+        limit: Optional[str] = None,
+        randomMaxDelay: Optional[str] = None,
+        schedule: Optional[str] = None,
+        ext: Optional[str] = ".jsonld",
+        output_dir: Optional[Union[str, Path]] = Path.cwd(),
+        lang: Optional[str] = DEFAULT_LANG(),
+    ):
 
-    visible = True
-    required = False
-    skippable = True
+        schema_order = COMMON_SCHEMA_ORDER() + ["citation", "compute", "messages"]
 
-    def __init__(self, version=None):
-        super().__init__(version)
+        super().__init__(
+            at_id=name,
+            schemaVersion=schemaVersion,
+            at_type="reproschema:Activity",
+            prefLabel={lang: prefLabel},
+            altLabel=altLabel,
+            description=description,
+            preamble=preamble,
+            citation=citation,
+            messages=messages,
+            image=image,
+            audio=audio,
+            video=video,
+            schema_order=schema_order,
+            visible=visible,
+            required=required,
+            skippable=skippable,
+            limit=limit,
+            randomMaxDelay=randomMaxDelay,
+            schedule=schedule,
+            suffix=suffix,
+            ext=ext,
+            output_dir=output_dir,
+            lang=lang,
+        )
+        super().set_defaults()
+        self.ui.shuffle = False
+        self.update()
 
-    def set_defaults(self, name="default"):
-        self._SchemaBase__set_defaults(name)
-        self.set_preamble()
-        self.set_ui_default()
-
-    def set_compute(self, variable, expression):
-        self.schema["compute"] = [
-            {"variableName": variable, "jsExpression": expression}
-        ]
-
-    def append_item(self, item):
-        # See comment and TODO of the append_activity Protocol class
-
-        property = {
-            "variableName": item.get_basename(),
-            "isAbout": item.get_URI(),
-            "isVis": item.visible,
-            "requiredValue": item.required,
-        }
-        if item.skippable:
-            property["allow"] = ["reproschema:Skipped"]
-
-        self.schema["ui"]["order"].append(item.get_URI())
-        self.schema["ui"]["addProperties"].append(property)
-
-    """
-    writing, reading, sorting, unsetting
-    """
-
-    def sort(self):
-        schema_order = [
-            "@context",
-            "@type",
-            "@id",
-            "prefLabel",
-            "description",
-            "schemaVersion",
-            "version",
-            "preamble",
-            "citation",
-            "image",
-            "compute",
-            "ui",
-        ]
-        self.sort_schema(schema_order)
-        self.sort_ui()
-
-    def write(self, output_dir):
-        self.sort()
-        self._SchemaBase__write(output_dir)
+    def append_item(self, item: Item):
+        self.ui.append(obj=item, variableName=item.get_basename())

@@ -1,262 +1,488 @@
 import json
 import os
 from pathlib import Path
-from collections import OrderedDict
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
-"""
-For any key that can be 'translated' we set english as the default language
-in case the user does not provide it.
-"""
-DEFAULT_LANG = "en"
+from attrs import define
+from attrs import field
+from attrs.converters import default_if_none
+from attrs.validators import in_
+from attrs.validators import instance_of
+from attrs.validators import optional
 
-"""
-"""
-DEFAULT_VERSION = "1.0.0-rc4"
-
-
-def default_context(version):
-    """
-    For now we assume that the github repo will be where schema will be read from.
-    """
-    URL = "https://raw.githubusercontent.com/ReproNim/reproschema/"
-    VERSION = version or DEFAULT_VERSION
-    return URL + VERSION + "/contexts/generic"
+from .ui import UI
+from .utils import SchemaUtils
 
 
-class SchemaBase:
-    """
-    base class to deal with reproschema schemas
+def DEFAULT_VERSION() -> str:
+    return "1.0.0-rc4"
 
-    The content of the schema is stored in the dictionnary ``self.schema``
 
-        self.schema["@context"]
-        self.schema["@type"]
-        self.schema["schemaVersion"]
-        self.schema["version"]
-        self.schema["preamble"]
-        self.schema["citation"]
-        self.schema["image"]
-        ...
+def COMMON_SCHEMA_ORDER() -> list:
+    return [
+        "@context",
+        "@type",
+        "@id",
+        "schemaVersion",
+        "version",
+        "prefLabel",
+        "altLabel",
+        "description",
+        "preamble",
+        "image",
+        "audio",
+        "video",
+        "ui",
+    ]
 
-    When the output file is created, its content is simply dumped into a json
-    by the ``write`` method.
 
-    """
+@define(kw_only=True)
+class AdditionalNoteObj(SchemaUtils):
+    """A set of objects to define notes in a field.
 
-    # TODO might be more convenient to have some of the properties not centrlized in a single dictionnary
-    #
-    # Could be more practical to only create part or all of the dictionnary when write is called
-    #
-
-    schema_type = None
-
-    def __init__(self, version):
-
-        # TODO the version handling could probably be refactored
-        VERSION = version or DEFAULT_VERSION
-
-        self.schema = {
-            "@type": self.schema_type,
-            "schemaVersion": VERSION,
-            "version": "0.0.1",
-        }
-
-        URL = self.get_default_context(version)
-        self.set_context(URL)
-
-    # This probably needs some cleaning but is at the moment necessary to pass
-    # the context to the ResponseOption class
-    def get_default_context(self, version):
-        return default_context(version)
-
-    def __set_defaults(self, name):
-        self.set_filename(name)
-        self.set_directory(name)
-        "We use the ``name`` of this class instance for schema keys minus some underscore"
-        self.set_pref_label(name.replace("_", " "))
-        self.set_description(name.replace("_", " "))
-
-    """
-        setters
+    For example, most Redcap and NDA data dictionaries have notes
+    for each item which needs to be captured in reproschema.
     """
 
-    def set_directory(self, output_directory):
+    #: An element to define the column name where the note was taken from
+    column: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    #: An element to define the source (eg. RedCap, NDA) where the note was taken from.
+    source: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    #: The value for each option in choices or in additionalNotesObj
+    value: Any = field(default=None)
+
+    def __attrs_post_init__(self) -> None:
+
+        if self.schema_order in [None, []]:
+            self.schema_order = [
+                "column",
+                "source",
+                "value",
+            ]
+
+        self.update().sort_schema()
+
+
+@define(kw_only=True)
+class Message(SchemaUtils):
+    """An object to define messages in an activity or protocol."""
+
+    #: A JavaScript expression to compute a score from other variables.
+    jsExpression: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    #: The message to be conditionally displayed for an item.
+    message: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+
+    def __attrs_post_init__(self) -> None:
+
+        if self.schema_order in [None, []]:
+            self.schema_order = [
+                "message",
+                "jsExpression",
+            ]
+
+        self.update().sort_schema()
+
+
+@define(kw_only=True)
+class SchemaBase(SchemaUtils):
+    """
+    Schema based attributes: REQUIRED
+    """
+
+    at_type: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default="reproschema:Field"),  # type: ignore
+        validator=in_(
+            [
+                "reproschema:Protocol",
+                "reproschema:Activity",
+                "reproschema:Field",
+                "reproschema:ResponseOption",
+            ]
+        ),
+    )
+    at_id: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=[instance_of(str)],
+    )
+    schemaVersion: Optional[str] = field(
+        default=DEFAULT_VERSION(),
+        converter=default_if_none(default=DEFAULT_VERSION()),  # type: ignore
+        validator=[instance_of(str)],
+    )
+    version: Optional[str] = field(
+        default=None,
+        converter=default_if_none(default="0.0.1"),  # type: ignore
+        validator=[instance_of(str)],
+    )
+    at_context: str = field(
+        validator=[instance_of(str)],
+    )
+
+    @at_context.default
+    def _default_context(self) -> str:
         """
-        Where the file will be written by the ``write`` method
+        For now we assume that the github repo will be where schema will be read from.
         """
-        self.dir = output_directory
-
-    def set_URI(self, URI):
-        """
-        In case we need to keep where the output file is located,
-        we can set it with this method.
-        This can be useful if we have just read or created an item
-        and want to add it to an activity.
-        """
-        self.URI = URI
+        URL = "https://raw.githubusercontent.com/ReproNim/reproschema/"
+        VERSION = self.schemaVersion or DEFAULT_VERSION()
+        return URL + VERSION + "/contexts/generic"
 
     """
-        schema related setters
+    Schema based attributes: OPTIONAL
 
-        use them to set several of the common keys of the schema
+    Can be found in the UI class
+    - order
+    - addProperties
+    - allow
+    - about
     """
 
-    def set_context(self, context):
-        """
-        In case we want to overide the default context
-        """
-        self.schema["@context"] = context
+    """
+    Protocol, Activity, Field
+    """
+    # associatedMedia
+    prefLabel: Optional[Union[str, Dict[str, str]]] = field(
+        factory=(dict),
+        converter=default_if_none(default={}),  # type: ignore
+        validator=optional(instance_of((str, dict))),
+    )
+    altLabel: Optional[Union[str, Dict[str, str]]] = field(
+        factory=(dict),
+        converter=default_if_none(default={}),  # type: ignore
+        validator=optional(instance_of((str, dict))),
+    )
+    # TODO description is language specific?
+    description: str = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    image: Optional[Union[str, Dict[str, str]]] = field(
+        default=None,
+        validator=optional(instance_of((str, dict))),
+    )
+    audio: Optional[Union[str, Dict[str, str]]] = field(
+        default=None,
+        validator=optional(instance_of((str, dict))),
+    )
+    video: Optional[Union[str, Dict[str, str]]] = field(
+        default=None,
+        validator=optional(instance_of((str, dict))),
+    )
+    preamble: Optional[dict] = field(
+        factory=(dict),
+        converter=default_if_none(default={}),  # type: ignore
+        validator=optional(instance_of(dict)),
+    )
 
-    def set_preamble(self, preamble="", lang=DEFAULT_LANG):
-        self.schema["preamble"] = {lang: preamble}
-
-    def set_citation(self, citation):
-        self.schema["citation"] = citation
-
-    def set_image(self, image):
-        self.schema["image"] = image
-
-    def set_filename(self, name, ext=".jsonld"):
-        """
-        By default all files are given:
-          - the ``.jsold`` extension
-          - have ``_schema`` suffix appended to them
-
-        For item files their name won't have the schema prefix.
-        """
-        # TODO figure out if the latter is a desirable behavior
-        self.schema_file = name + "_schema" + ext
-        self.schema["@id"] = name + "_schema" + ext
-
-    def set_pref_label(self, pref_label, lang=DEFAULT_LANG):
-        self.schema["prefLabel"] = {lang: pref_label}
-
-    def set_description(self, description):
-        self.schema["description"] = description
+    # Protocol only
+    # TODO landing_page is a dict or a list of dict?
+    landingPage: Optional[dict] = field(
+        factory=(dict),
+        converter=default_if_none(default={}),  # type: ignore
+        validator=optional(instance_of(dict)),
+    )
 
     """
-        getters
-
-        to access the content of some of the keys of the schema
-        or some of the instance properties
+    Protocol and Activity
     """
-
-    def get_name(self):
-        return self.schema_file.replace("_schema", "")
-
-    def get_filename(self):
-        return self.schema_file
-
-    def get_basename(self):
-        return Path(self.schema_file).stem
-
-    def get_pref_label(self):
-        return self.schema["prefLabel"]
-
-    def get_URI(self):
-        return self.URI
+    # TODO cronTable
+    citation: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    compute: Optional[List[Dict[str, str]]] = field(
+        factory=(list),
+        converter=default_if_none(default=[]),  # type: ignore
+        validator=optional(instance_of(list)),
+    )
+    messages: Optional[list] = field(
+        factory=(list),
+        converter=default_if_none(default=[]),  # type: ignore
+        validator=optional(instance_of(list)),
+    )
 
     """
-    UI: setters specific to the user interface keys of the schema
+    Activity only
+    """
+    # TODO overrideProperties
 
-    The ui has its own dictionnary.
+    """
+    Field only
+    """
+    inputType: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    readonlyValue: Optional[bool] = field(
+        factory=(bool),
+        validator=optional(instance_of(bool)),
+    )
+    question: Optional[dict] = field(
+        factory=(dict),
+        converter=default_if_none(default={}),  # type: ignore
+        validator=optional(instance_of(dict)),
+    )
+    additionalNotesObj: Optional[list] = field(
+        factory=(list),
+        converter=default_if_none(default=[]),  # type: ignore
+        validator=optional(instance_of(list)),
+    )
 
-    Mostly used by the Protocol and Activity class.
+    """
+    UI related
+    """
+    ui: UI = field(
+        default=UI(at_type="reproschema:Field"),
+        validator=optional(instance_of(UI)),
+    )
+    visible: bool | str | None = field(
+        factory=(bool),
+        converter=default_if_none(default=True),  # type: ignore
+        validator=optional(instance_of((bool, str))),
+    )
+    required: Optional[bool] = field(
+        factory=(bool),
+        validator=optional(instance_of(bool)),
+    )
+    skippable: Optional[bool] = field(
+        factory=(bool),
+        converter=default_if_none(default=True),  # type: ignore
+        validator=optional(instance_of(bool)),
+    )
+    limit: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    randomMaxDelay: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    schedule: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=""),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+
+    """
+    Non schema based attributes: OPTIONAL
+
+    Those attributes help with file management
+    and with printing json files with standardized key orders
+    """
+
+    output_dir: Optional[Union[str, Path]] = field(
+        default=None,
+        converter=default_if_none(default=Path.cwd()),  # type: ignore
+        validator=optional(instance_of((str, Path))),
+    )
+    suffix: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default="_schema"),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    ext: Optional[str] = field(
+        factory=(str),
+        converter=default_if_none(default=".jsonld"),  # type: ignore
+        validator=optional(instance_of(str)),
+    )
+    URI: Optional[Path] = field(
+        default=None,
+        converter=default_if_none(default=Path("")),  # type: ignore
+        validator=optional(instance_of((str, Path))),
+    )
+
+    def set_defaults(self):
+
+        self.ui = UI(at_type=self.at_type, readonlyValue=self.readonlyValue)
+
+        if self.description == "":
+            self.description = self.at_id.replace("_", " ")
+
+        if self.prefLabel == "":
+            self.prefLabel = self.at_id.replace("_", " ")
+
+        if isinstance(self.prefLabel, str):
+            self.prefLabel = {self.lang: self.prefLabel}
+
+        self.set_pref_label()
+
+        self.set_filename()
+
+    def update(self) -> None:
+        """Updates the schema content based on the attributes."""
+        self.schema["@id"] = self.at_id
+        self.schema["@type"] = self.at_type
+        self.schema["@context"] = self.at_context
+        keys_to_update = [
+            "schemaVersion",
+            "version",
+            "prefLabel",
+            "altLabel",
+            "description",
+            "citation",
+            "image",
+            "audio",
+            "video",
+            "preamble",
+            "landingPage",
+            "compute",
+            "question",
+            "messages",
+            "additionalNotesObj",
+        ]
+        for key in keys_to_update:
+            self.schema[key] = self.__getattribute__(key)
+
+        self.update_ui()
+
+    def update_ui(self) -> None:
+        self.ui.update()
+        self.schema["ui"] = self.ui.schema
+
+    """SETTERS
+
+    These are "complex" setters to help set fields that are dictionaries,
+    or that use other attributes
+    or set several attributes at once
 
     """
 
-    def set_ui_default(self):
-        self.schema["ui"] = {
-            "shuffle": [],
-            "order": [],
-            "addProperties": [],
-            "allow": [],
-        }
-        self.set_ui_shuffle()
-        self.set_ui_allow()
+    def set_preamble(
+        self, preamble: Optional[str] = None, lang: Optional[str] = None
+    ) -> None:
+        if preamble is None:
+            return
+        if lang is None:
+            lang = self.lang
+        if not self.preamble:
+            self.preamble = {}
+        self.preamble[lang] = preamble
+        self.update()
 
-    def set_ui_shuffle(self, shuffle=False):
-        self.schema["ui"]["shuffle"] = shuffle
+    # TODO move to protocol class?
+    def set_landing_page(self, page: Optional[str] = None, lang: Optional[str] = None):
+        if page is None:
+            return
+        if lang is None:
+            lang = self.lang
+        self.landingPage = {"@id": page, "inLanguage": lang}
+        self.update()
 
-    def set_ui_allow(self, auto_advance=True, allow_export=True, disable_back=False):
-        # TODO
-        # Could be more convenient to have one method for each property
-        #
-        # Also currently the way this is handled makes it hard to update a single value:
-        # all 3 have to be reset everytime!!!
-        #
-        # Could be useful to have a UI class with dictionnary content that is only
-        #  generated when the file is written
-        allow = []
-        if auto_advance:
-            allow.append("reproschema:AutoAdvance")
-        if allow_export:
-            allow.append("reproschema:AllowExport")
-        if disable_back:
-            allow.append("reproschema:DisableBack")
-        self.schema["ui"]["allow"] = allow
+    def set_compute(self, variable, expression):
+        self.compute = [{"variableName": variable, "jsExpression": expression}]
+        self.update()
+
+    def set_filename(self, name: str = None) -> None:
+        if name is None:
+            name = self.at_id
+        if name.endswith(self.ext):
+            name = name.replace(self.ext, "")
+        if name.endswith(self.suffix):
+            name = name.replace(self.suffix, "")
+
+        name = name.replace(" ", "_")
+
+        self.at_id = f"{name}{self.suffix}{self.ext}"
+        self.URI = os.path.join(self.output_dir, self.at_id)
+        self.update()
+
+    def set_alt_label(
+        self, alt_label: Optional[str] = None, lang: Optional[str] = None
+    ) -> None:
+        if alt_label is None:
+            return
+        if lang is None:
+            lang = self.lang
+        self.alt_label[lang] = alt_label
+        self.update()
+
+    def set_pref_label(
+        self, pref_label: Optional[str] = None, lang: Optional[str] = None
+    ) -> None:
+        if lang is None:
+            lang = self.lang
+
+        if pref_label is None:
+            if isinstance(self.prefLabel, dict) and (
+                self.prefLabel == {}
+                or self.prefLabel[lang]
+                in [
+                    "protocol",
+                    "activity",
+                    "item",
+                ]
+            ):
+                self.set_pref_label(pref_label=self.at_id.replace("_", " "), lang=lang)
+                # pref_label = self.at_id.replace("_", " ")
+            return
+
+        self.prefLabel[lang] = pref_label
+        self.update()
+
+    """GETTERS
+    """
+
+    def get_basename(self) -> str:
+        return Path(self.at_id).stem
 
     """
     writing, reading, sorting, unsetting
 
-    Editing and appending things to the dictionnary tends to give json output
-    that is not standardized: the @context can end up at the bottom for one file
+    Editing and appending things to the dictionary tends to give json output
+    that is not standardized.
+    For example: the `@context` can end up at the bottom for one file
     and stay at the top for another.
     So there are a couple of sorting methods to rearrange the keys of
-    the different dictionaries and those are called right before writing the jsonld file.
+    the different dictionaries and those are called right before writing the output file.
 
     Those methods enforces a certain order or keys in the output and
     also remove any empty or unknown keys.
     """
 
-    # TODO allow for unknown keys to be added because otherwise adding new fields in the json always
-    # forces you to go and change those `schema_order` and `ui_order` otherwise they will not be added.
-    #
-    # This will require modifying the helper function `reorder_dict_skip_missing`
-    #
+    def sort(self) -> None:
+        self.sort_schema()
+        self.update_ui()
 
-    def sort_schema(self, schema_order):
-        """
-        The ``schema_order`` is specific to each "level" of the reproschema
-        (protocol, activity, item) so that each can be reordered in its own way
-        """
-        reordered_dict = reorder_dict_skip_missing(self.schema, schema_order)
-        self.schema = reordered_dict
+    def write(self, output_dir: Optional[Union[str, Path]] = None) -> None:
 
-    def sort_ui(self, ui_order=["shuffle", "order", "addProperties", "allow"]):
-        reordered_dict = reorder_dict_skip_missing(self.schema["ui"], ui_order)
-        self.schema["ui"] = reordered_dict
+        self.sort()
 
-    def __write(self, output_dir):
-        """
-        Reused by the write method of the children classes
-        """
-        with open(os.path.join(output_dir, self.schema_file), "w") as ff:
+        self.drop_empty_values_from_schema()
+
+        if output_dir is None:
+            output_dir = self.output_dir
+
+        if isinstance(output_dir, str):
+            output_dir = Path(output_dir)
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(output_dir.joinpath(self.at_id), "w") as ff:
             json.dump(self.schema, ff, sort_keys=False, indent=4)
-
-    @classmethod
-    def from_data(cls, data):
-        if cls.schema_type is None:
-            raise ValueError("SchemaBase cannot be used to instantiate class")
-        if cls.schema_type != data["@type"]:
-            raise ValueError(f"Mismatch in type {data['@type']} != {cls.schema_type}")
-        klass = cls()
-        klass.schema = data
-        return klass
-
-    @classmethod
-    def from_file(cls, filepath):
-        with open(filepath) as fp:
-            data = json.load(fp)
-        if "@type" not in data:
-            raise ValueError("Missing @type key")
-        return cls.from_data(data)
-
-
-def reorder_dict_skip_missing(old_dict, key_list):
-    """
-    reorders dictionary according to ``key_list``
-    removing any key with no associated value
-    or that is not in the key list
-    """
-    return OrderedDict((k, old_dict[k]) for k in key_list if k in old_dict)

@@ -8,20 +8,11 @@
     "description": "default",
     "schemaVersion": "1.0.0-rc4",
     "version": "0.0.1",
-    "landingPage": {
-        "@id": "README-en.md",
-        "inLanguage": "en"
-    },
-    "preamble": {
-        "en": ""
-    },
     "ui": {
         "allow": [
             "reproschema:AutoAdvance",
             "reproschema:AllowExport"
         ],
-        "shuffle": false,
-        "order": [],
-        "addProperties": []
+        "shuffle": false
     }
 }

@@ -1,88 +1,77 @@
+from pathlib import Path
+from typing import Dict
+from typing import Optional
+from typing import Union
+
+from attrs import define
+
+from .activity import Activity
+from .base import COMMON_SCHEMA_ORDER
 from .base import SchemaBase
+from .utils import DEFAULT_LANG
 
-DEFAULT_LANG = "en"
 
-
+@define(kw_only=True)
 class Protocol(SchemaBase):
     """
     class to deal with reproschema protocols
     """
 
-    schema_type = "reproschema:Protocol"
+    def __init__(
+        self,
+        name: Optional[str] = "protocol",
+        schemaVersion: Optional[str] = None,
+        prefLabel: Optional[str] = "protocol",
+        altLabel: Optional[Union[str, Dict[str, str]]] = None,
+        description: Optional[str] = "",
+        landingPage: Optional[dict] = None,
+        preamble: Optional[str] = None,
+        citation: Optional[str] = None,
+        image: Optional[Union[str, Dict[str, str]]] = None,
+        audio: Optional[Union[str, Dict[str, str]]] = None,
+        video: Optional[Union[str, Dict[str, str]]] = None,
+        messages: Optional[Dict[str, str]] = None,
+        suffix: Optional[str] = "_schema",
+        ext: Optional[str] = ".jsonld",
+        output_dir: Optional[Union[str, Path]] = Path.cwd(),
+        lang: Optional[str] = DEFAULT_LANG(),
+        **kwargs
+    ):
 
-    def __init__(self, version=None):
-        """
-        Rely on the parent class for construction of the instance
-        """
-        super().__init__(version)
-
-    def set_defaults(self, name="default"):
-        self._SchemaBase__set_defaults(name)
-        self.set_landing_page("README-en.md")
-        # does it make sense to give a preamble by default to protocols since
-        # they already have a landing page?
-        self.set_preamble()
-        self.set_ui_default()
-
-    def set_landing_page(self, landing_page_uri, lang=DEFAULT_LANG):
-        self.schema["landingPage"] = {"@id": landing_page_uri, "inLanguage": lang}
-
-    def append_activity(self, activity):
-        """
-        We get from an activity instance the info we need to update the protocol scheme.
-
-        This appends the activity after all the other ones.
-
-        So this means the order of the activities will be dependent
-        on the order in which they are "read".
-
-        This implementation assumes that the activities are read
-        from a list and added one after the other.
-        """
-        # TODO
-        # - find a way to reorder, remove or add an activity
-        # at any point in the protocol
-        # - this method is nearly identical to the append_item method of Activity
-        # and should probably be refactored into a single method of the parent class
-        # and ideally into a method of a yet to be created UI class
-
-        property = {
-            # variable name is name of activity without prefix
-            "variableName": activity.get_basename().replace("_schema", ""),
-            "isAbout": activity.get_URI(),
-            "prefLabel": activity.get_pref_label(),
-            "isVis": activity.visible,
-            "requiredValue": activity.required,
-        }
-        if activity.skippable:
-            property["allow"] = ["reproschema:Skipped"]
-
-        self.schema["ui"]["order"].append(activity.get_URI())
-        self.schema["ui"]["addProperties"].append(property)
-
-    """
-    writing, reading, sorting, unsetting
-    """
-
-    def sort(self):
-        schema_order = [
-            "@context",
-            "@type",
-            "@id",
-            "prefLabel",
-            "description",
-            "schemaVersion",
-            "version",
+        schema_order = COMMON_SCHEMA_ORDER() + [
             "landingPage",
-            "preamble",
             "citation",
-            "image",
             "compute",
-            "ui",
+            "messages",
         ]
-        self.sort_schema(schema_order)
-        self.sort_ui()
 
-    def write(self, output_dir):
-        self.sort()
-        self._SchemaBase__write(output_dir)
+        super().__init__(
+            at_id=name,
+            at_type="reproschema:Protocol",
+            schemaVersion=schemaVersion,
+            prefLabel={lang: prefLabel},
+            altLabel=altLabel,
+            description=description,
+            landingPage=landingPage,
+            preamble=preamble,
+            citation=citation,
+            messages=messages,
+            image=image,
+            audio=audio,
+            video=video,
+            schema_order=schema_order,
+            suffix=suffix,
+            ext=ext,
+            output_dir=output_dir,
+            lang=lang,
+            **kwargs
+        )
+        super().set_defaults()
+        self.ui.shuffle = False
+        self.ui.update()
+        self.update()
+
+    def append_activity(self, activity: Activity):
+        self.ui.append(
+            obj=activity, variableName=activity.get_basename().replace("_schema", "")
+        )

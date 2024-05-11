@@ -1,125 +1,150 @@
-import os, sys, json
+import os
 
-from ..activity import Activity
-from ..item import Item
+from utils import clean_up
+from utils import load_jsons
+from utils import output_dir
 
-my_path = os.path.dirname(os.path.abspath(__file__))
+from reproschema.models.activity import Activity
+from reproschema.models.base import Message
+from reproschema.models.item import Item
 
-# Left here in case Remi and python path or import can't be friends once again.
-# sys.path.insert(0, my_path + "/../")
-
-# TODO
-# refactor across the different test modules
-activity_dir = os.path.join(my_path, "activities")
-if not os.path.exists(activity_dir):
-    os.makedirs(os.path.join(activity_dir))
-
-"""
-Only for the few cases when we want to check against some of the files in
-reproschema/tests/data
-"""
-reproschema_test_data = os.path.join(my_path, "..", "..", "tests", "data")
+activity_dir = output_dir("activities")
 
 
 def test_default():
-
     """
     FYI: The default activity does not conform to the schema
-    so  `reproschema validate` will complain if you run it in this
+    so  `reproschema validate` will complain if you run it on this
     """
 
-    activity = Activity()
-    activity.set_defaults()
+    activity = Activity(name="default", output_dir=activity_dir)
+    activity.write()
 
-    activity.write(activity_dir)
-    activity_content, expected = load_jsons(activity)
+    activity_content, expected = load_jsons(activity_dir, activity)
     assert activity_content == expected
 
-    clean_up(activity)
+    clean_up(activity_dir, activity)
 
 
 def test_activity():
 
-    activity = Activity()
-    activity.set_defaults("activity1")
-    activity.set_description("Activity example 1")
-    activity.set_pref_label("Example 1")
+    activity = Activity(
+        name="activity1",
+        prefLabel="Example 1",
+        description="Activity example 1",
+        citation="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/",
+        output_dir=activity_dir,
+    )
     activity.set_preamble(
         "Over the last 2 weeks, how often have you been bothered by any of the following problems?"
     )
-    activity.set_citation("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/")
-    activity.set_image(
-        {"@type": "AudioObject", "contentUrl": "http://example.com/sample-image.png"}
-    )
+    activity.image = {
+        "@type": "AudioObject",
+        "contentUrl": "http://example.com/sample-image.png",
+    }
+
     activity.set_compute("activity1_total_score", "item1 + item2")
 
-    item_1 = Item()
-    item_1.set_defaults("item1")
-    # TODO
-    # probably want to have items/item_name be a default
-    item_1.set_URI(os.path.join("items", item_1.get_filename()))
-    # TODO
-    # We probably want a method to change those values rather that modifying
-    # the instance directly
-    item_1.skippable = False
-    item_1.required = True
-    """
-    Items are appended and this updates the  the ``ui`` ``order`` and ``addProperties``
-    """
-    activity.append_item(item_1)
+    item_1 = Item(name="item1", skippable=False, required=True, output_dir="items")
 
-    item_2 = Item()
-    item_2.set_defaults("item2")
+    item_2 = Item(
+        name="item2", required=True, output_dir=os.path.join("..", "other_dir")
+    )
     item_2.set_filename("item_two")
 
     """
-    In this case the URI is relative to where the activity file will be saved
+    By default all files are save with a jsonld extension but this can be changed
     """
-    item_2.set_URI(os.path.join("..", "other_dir", item_2.get_filename()))
-    item_2.required = True
-    activity.append_item(item_2)
+    item_3 = Item(
+        name="activity1_total_score",
+        ext="",
+        skippable=False,
+        required=True,
+        visible=False,
+        output_dir="items",
+    )
 
-    item_3 = Item()
-    item_3.set_defaults("activity1_total_score")
-    """
-    By default all files are save with a json.ld extension but this can be changed
-    """
-    file_ext = ""
-    item_3.set_filename("activity1_total_score", file_ext)
-    item_3.set_URI(os.path.join("items", item_3.get_filename()))
-    item_3.skippable = False
-    item_3.required = True
-    item_3.visible = False
+    activity.append_item(item_1)
+    activity.append_item(item_2)
     activity.append_item(item_3)
 
-    activity.write(activity_dir)
-    activity_content, expected = load_jsons(activity)
+    activity.write()
+    activity_content, expected = load_jsons(activity_dir, activity)
     assert activity_content == expected
 
-    clean_up(activity)
+    clean_up(activity_dir, activity)
 
 
-"""
-HELPER FUNCTIONS
-"""
+def test_activity_1():
 
+    messages = [
+        Message(
+            jsExpression="item1 > 1",
+            message="Test message: Triggered when item1 value is greater than 1",
+        ).schema
+    ]
 
-def load_jsons(obj):
+    activity = Activity(
+        name="activity1",
+        prefLabel="Example 1",
+        description="Activity example 1",
+        citation="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1495268/",
+        messages=messages,
+        output_dir=activity_dir,
+        suffix="",
+    )
+    activity.set_preamble(
+        preamble="Over the last 2 weeks, how often have you been bothered by any of the following problems?"
+    )
+    activity.set_preamble(
+        preamble="Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguintes problemas?",
+        lang="es",
+    )
+    activity.image = {
+        "@type": "AudioObject",
+        "contentUrl": "http://example.com/sample-image.png",
+    }
+    activity.at_context = "../../contexts/generic"
+    activity.ui.AutoAdvance = False
+    activity.ui.AllowExport = False
+    activity.update()
 
-    output_file = os.path.join(activity_dir, obj.get_filename())
-    content = read_json(output_file)
+    activity.set_compute(variable="activity1_total_score", expression="item1 + item2")
 
-    data_file = os.path.join(my_path, "data", "activities", obj.get_filename())
-    expected = read_json(data_file)
+    item_1 = Item(
+        name="item1",
+        skippable=False,
+        required=True,
+        output_dir="items",
+        limit="P2D",
+        randomMaxDelay="PT2H",
+        schedule="R/2020-08-01T08:00:00Z/P1D",
+    )
+    item_1.prefLabel = {}
+    activity.update()
 
-    return content, expected
+    item_2 = Item(name="item2", skippable=True, required=True, output_dir="items")
+    item_2.set_filename("item2")
+    item_2.prefLabel = {}
+    activity.update()
 
+    item_3 = Item(
+        name="activity1_total_score",
+        ext="",
+        skippable=False,
+        required=True,
+        visible=False,
+        output_dir="items",
+    )
+    item_3.prefLabel = {}
+    activity.update()
 
-def read_json(file):
+    activity.append_item(item_1)
+    activity.append_item(item_2)
+    activity.append_item(item_3)
 
-    with open(file, "r") as ff:
-        return json.load(ff)
+    activity.write()
+    activity_content, expected = load_jsons(activity_dir, activity)
+    assert activity_content == expected
 
-
-def clean_up(obj):
-    os.remove(os.path.join(activity_dir, obj.get_filename()))
+    clean_up(activity_dir, activity)
