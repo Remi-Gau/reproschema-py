@@ -136,6 +136,7 @@ class Item(SchemaBase):
 
         SUPPORTED_TYPES = (
             "text",
+            "textarea",
             "multitext",
             "integer",
             "float",
@@ -155,7 +156,7 @@ class Item(SchemaBase):
         if self.inputType not in SUPPORTED_TYPES:
             raise ValueError(
                 f"""
-            Input_type {self.inputType} not supported.
+            Input_type '{self.inputType}' not supported.
             Supported input_types are: {SUPPORTED_TYPES}
             """
             )

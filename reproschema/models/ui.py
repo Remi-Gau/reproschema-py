@@ -22,6 +22,7 @@ class UI(SchemaUtils):
     #: this is more to help set up things on the UI side than purely schema related
     SUPPORTED_INPUT_TYPES = (
         "text",
+        "textarea",
         "multitext",
         "number",
         "float",
