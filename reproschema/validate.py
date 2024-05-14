@@ -1,16 +1,12 @@
 import os
 
-from .jsonldutils import load_file
-from .jsonldutils import validate_data
-from .utils import lgr
-from .utils import start_server
-from .utils import stop_server
+from pathlib import Path
+from .utils import start_server, stop_server, lgr
+from .jsonldutils import load_file, validate_data
 
 
 def validate_dir(directory, shape_file, started=False, http_kwargs={}):
     """Validate a directory containing JSONLD documents
-
-    .. warning:: This assumes every file in the directory can be read by a json parser.
 
     Parameters
     ----------
@@ -38,9 +34,17 @@ def validate_dir(directory, shape_file, started=False, http_kwargs={}):
     else:
         if "port" not in http_kwargs:
             raise KeyError(f"HTTP server started, but port key is missing")
-    for root, dirs, files in os.walk(directory):
+
+    for root, _, files in os.walk(directory):
         for name in files:
             full_file_name = os.path.join(root, name)
+
+            if Path(full_file_name).suffix not in [".jsonld", ""]:
+                lgr.info(f"Skipping file {full_file_name}")
+                continue
+
+            lgr.debug(f"Validating file {full_file_name}")
+
             try:
                 data = load_file(full_file_name, started=True, http_kwargs=http_kwargs)
                 if len(data) == 0:
