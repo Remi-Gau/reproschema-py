@@ -1,4 +1,4 @@
-import os
+import os, json
 
 from pathlib import Path
 from .utils import start_server, stop_server, lgr
@@ -28,14 +28,15 @@ def validate_dir(directory, shape_file, started=False, http_kwargs={}):
 
     """
     stop = None
+
     if not started:
         stop, port = start_server(**http_kwargs)
         http_kwargs["port"] = port
-    else:
-        if "port" not in http_kwargs:
-            raise KeyError(f"HTTP server started, but port key is missing")
+    elif "port" not in http_kwargs:
+        raise KeyError("HTTP server started, but port key is missing")
 
     for root, _, files in os.walk(directory):
+
         for name in files:
             full_file_name = os.path.join(root, name)
 
@@ -46,22 +47,36 @@ def validate_dir(directory, shape_file, started=False, http_kwargs={}):
             lgr.debug(f"Validating file {full_file_name}")
 
             try:
+                with open(full_file_name, 'r') as f:
+                    data = json.load(f)
+                if data["@id"] and data["@id"] != name:
+                    lgr.critical(f"File {full_file_name} has validation errors.")
+                    raise ValueError(f"{root}/{name} does not have matching '@id.'")
+            except json.decoder.JSONDecodeError:
+                lgr.critical(f"{full_file_name} could not be loaded.")
+                raise
+
+            try:
                 data = load_file(full_file_name, started=True, http_kwargs=http_kwargs)
                 if len(data) == 0:
                     raise ValueError("Empty data graph")
                 conforms, vtext = validate_data(data, shape_file)
-            except (ValueError,):
+
+            except ValueError:
                 if stop is not None:
                     stop_server(stop)
                 raise
+
             else:
                 if not conforms:
                     lgr.critical(f"File {full_file_name} has validation errors.")
                     if stop is not None:
                         stop_server(stop)
                     raise ValueError(vtext)
+
     if not started:
         stop_server(stop)
+
     return True
 
 
