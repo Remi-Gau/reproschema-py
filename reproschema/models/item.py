@@ -10,7 +10,6 @@ from .base import SchemaBase
 from .response_options import ResponseOption
 from .utils import DEFAULT_LANG
 
-
 class Item(SchemaBase):
     """
     class to deal with reproschema items
@@ -179,6 +178,10 @@ class Item(SchemaBase):
             self.response_options.maxLength = 300
             self.response_options.update()
 
+        if response_options and self.inputType in ["integer", "float"]:
+            self.response_options = response_options
+            self.set_response_options()
+
         elif self.inputType in ["integer", "float", "date"]:
             self.response_options.set_valueType(self.inputType)
 
@@ -213,6 +216,8 @@ class Item(SchemaBase):
     """
     writing, reading, sorting, unsetting
     """
+
+
 
     def set_response_options(self) -> None:
         """Pass the content of the response options object to the schema of the item.

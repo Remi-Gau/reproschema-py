@@ -48,7 +48,7 @@ class unitOption(SchemaUtils):
         self.sort_schema()
 
     def set_pref_label(
-        self, pref_label: Optional[str] = None, lang: Optional[str] = None
+        self, pref_label: str | None = None, lang: str | None = None
     ) -> None:
         if pref_label is None:
             return
@@ -106,7 +106,7 @@ class ResponseOption(SchemaUtils):
         "xsd:timeRange",
     )
 
-    at_type: Optional[str] = field(
+    at_type: str | None = field(
         default=None,
         converter=default_if_none(default="reproschema:ResponseOption"),  # type: ignore
         validator=in_(
@@ -115,12 +115,12 @@ class ResponseOption(SchemaUtils):
             ]
         ),
     )
-    at_id: Optional[str] = field(
+    at_id: str | None = field(
         default=None,
         converter=default_if_none(default="valueConstraints"),  # type: ignore
         validator=[instance_of(str)],
     )
-    schemaVersion: Optional[str] = field(
+    schemaVersion: str | None = field(
         default=DEFAULT_VERSION(),
         converter=default_if_none(default=DEFAULT_VERSION()),  # type: ignore
         validator=[instance_of(str)],
@@ -145,7 +145,7 @@ class ResponseOption(SchemaUtils):
         validator=optional(in_(SUPPORTED_VALUE_TYPES)),
     )
     #: List the available options for response of the Field item.
-    choices: Optional[Union[str, List[Choice]]] = field(
+    choices: None | str | List[Choice] = field(
         factory=(list),
         converter=default_if_none(default=[]),  # type: ignore
         validator=optional(instance_of((str, list))),
@@ -156,14 +156,14 @@ class ResponseOption(SchemaUtils):
         validator=optional(instance_of(bool)),
     )
     #: The lower value of some characteristic or property.
-    minValue: Optional[int] = field(
+    minValue: int | float | None = field(
         default=None,
-        validator=optional(instance_of(int)),
+        validator=optional(instance_of((int, float))),
     )
     #: The upper value of some characteristic or property.
-    maxValue: Optional[int] = field(
+    maxValue: int | float | None = field(
         default=None,
-        validator=optional(instance_of(int)),
+        validator=optional(instance_of((int, float))),
     )
     #: A list to represent a human displayable name alongside the more formal value for units.
     unitOptions: Optional[list] = field(
@@ -173,20 +173,20 @@ class ResponseOption(SchemaUtils):
     )
     #: The unit of measurement given using the UN/CEFACT Common Code (3 characters) or a URL.
     # Other codes than the UN/CEFACT Common Code may be used with a prefix followed by a colon.
-    unitCode: Optional[str] = field(
+    unitCode: str | None = field(
         default=None,
         converter=default_if_none(default=""),  # type: ignore
         validator=optional(instance_of(str)),
     )
     #: Indicates what type of datum the response is
     # (e.g. range,count,scalar etc.) for the Field item.
-    datumType: Optional[str] = field(
+    datumType: str | None = field(
         default=None,
         converter=default_if_none(default=""),  # type: ignore
         validator=optional(instance_of(str)),
     )
     # Technically not in the schema, but useful for the UI
-    maxLength: Optional[int] = field(
+    maxLength: int | None = field(
         default=None,
         validator=optional(instance_of(int)),
     )
@@ -200,17 +200,17 @@ class ResponseOption(SchemaUtils):
 
     """
 
-    output_dir: Optional[Union[str, Path]] = field(
+    output_dir: None | str | Path = field(
         default=None,
         converter=default_if_none(default=Path.cwd()),  # type: ignore
         validator=optional(instance_of((str, Path))),
     )
-    suffix: Optional[str] = field(
+    suffix: str | None = field(
         default=None,
         converter=default_if_none(default=""),  # type: ignore
         validator=optional(instance_of(str)),
     )
-    ext: Optional[str] = field(
+    ext: str | None = field(
         default=None,
         converter=default_if_none(default=".jsonld"),  # type: ignore
         validator=optional(instance_of(str)),
@@ -293,18 +293,18 @@ class ResponseOption(SchemaUtils):
 
     def add_choice(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         value: Any = None,
-        lang: Optional[str] = None,
+        lang: str | None = None,
     ) -> None:
         """Add a response choice.
 
         :param name: _description_, defaults to None
-        :type name: Optional[str], optional
+        :type name: str | None, optional
         :param value: _description_, defaults to None
         :type value: Any, optional
         :param lang: _description_, defaults to None
-        :type lang: Optional[str], optional
+        :type lang: str | None, optional
         """
         if lang is None:
             lang = self.lang
