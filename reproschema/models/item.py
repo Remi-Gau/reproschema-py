@@ -240,8 +240,11 @@ class Item(SchemaBase):
         for i in keys:
             self.schema.pop(i, None)
 
+
+
     def write(self, output_dir=None) -> None:
         if output_dir is None:
             output_dir = self.output_dir
         self.set_response_options()
+        self.update()
         super().write(output_dir)
