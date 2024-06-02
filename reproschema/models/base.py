@@ -37,6 +37,7 @@ def COMMON_SCHEMA_ORDER() -> list:
         "audio",
         "video",
         "ui",
+        "messages",
     ]
 
 
